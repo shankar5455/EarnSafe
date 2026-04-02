@@ -1,6 +1,11 @@
 package com.gigshield.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,7 +18,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,15 +29,22 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     @Column(nullable = false)
     private String fullName;
 
+    @NotBlank
     @Column(nullable = false, unique = true)
     private String phone;
 
+    @NotBlank
+    @Email
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotBlank
+    @Size(min = 6)
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -50,6 +63,7 @@ public class User implements UserDetails {
 
     private String vehicleType;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
