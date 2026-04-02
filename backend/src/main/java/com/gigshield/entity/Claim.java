@@ -49,6 +49,7 @@ public class Claim {
     @Column(nullable = false)
     private ClaimStatus claimStatus;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean fraudFlag = false;
 
