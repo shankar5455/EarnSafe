@@ -5,16 +5,20 @@ import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.entity.Policy;
 import com.earnsafe.entity.User;
 import com.earnsafe.entity.WeatherEvent;
+import com.earnsafe.repository.ClaimRepository;
 import com.earnsafe.repository.PolicyRepository;
 import com.earnsafe.repository.UserRepository;
 import com.earnsafe.repository.WeatherEventRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TriggerService {
@@ -23,6 +27,7 @@ public class TriggerService {
     private final PolicyRepository policyRepository;
     private final UserRepository userRepository;
     private final ClaimService claimService;
+    private final ClaimRepository claimRepository;
 
     public List<WeatherEvent> getLiveEvents() {
         return weatherEventRepository.findTop10ByOrderByEventTimestampDesc();
@@ -66,29 +71,58 @@ public class TriggerService {
         return claims;
     }
 
-    public List<ClaimResponse> evaluateAll(WeatherEvent event) {
+    /**
+     * Core reusable method: evaluates all active policies against a weather event.
+     * Called by both the REST controller (/triggers/evaluate-all) and the scheduler.
+     */
+    public List<ClaimResponse> evaluatePoliciesForEvent(WeatherEvent event) {
         List<ClaimResponse> allClaims = new ArrayList<>();
-
         List<Policy> activePolicies = policyRepository.findByStatus(Policy.PolicyStatus.ACTIVE);
+        LocalDate eventDate = event.getEventTimestamp() != null
+                ? event.getEventTimestamp().toLocalDate()
+                : LocalDate.now();
+
+        log.info("Checking triggers for zone/city: {} | eventType: {} | active policies: {}",
+                event.getCity(), event.getEventType(), activePolicies.size());
 
         for (Policy policy : activePolicies) {
             User user = policy.getUser();
-            // Check zone match
             String userCity = user.getCity();
             String eventCity = event.getCity();
-            if (userCity != null && userCity.equalsIgnoreCase(eventCity)) {
-                if (isTriggerConditionMet(event)) {
-                    try {
-                        ClaimResponse claim = claimService.triggerClaim(user, event);
-                        allClaims.add(claim);
-                    } catch (Exception e) {
-                        // Log but don't fail
-                    }
-                }
+
+            if (userCity == null || !userCity.equalsIgnoreCase(eventCity)) {
+                continue;
+            }
+
+            if (!isTriggerConditionMet(event)) {
+                continue;
+            }
+
+            // Duplicate prevention: skip if a claim already exists for this user/date/type
+            boolean alreadyExists = claimRepository.existsByUserAndDisruptionDateAndTriggerType(
+                    user, eventDate, event.getEventType());
+            if (alreadyExists) {
+                log.info("Skipping duplicate claim for policy ID {} (user: {}, date: {}, type: {})",
+                        policy.getId(), user.getEmail(), eventDate, event.getEventType());
+                continue;
+            }
+
+            try {
+                log.info("Disruption detected for policy ID {} (user: {}, city: {}, eventType: {})",
+                        policy.getId(), user.getEmail(), eventCity, event.getEventType());
+                ClaimResponse claim = claimService.triggerClaim(user, event);
+                log.info("Claim auto-created: {} for policy ID {}", claim.getClaimNumber(), policy.getId());
+                allClaims.add(claim);
+            } catch (Exception e) {
+                log.warn("Failed to create claim for policy ID {}: {}", policy.getId(), e.getMessage());
             }
         }
 
         return allClaims;
+    }
+
+    public List<ClaimResponse> evaluateAll(WeatherEvent event) {
+        return evaluatePoliciesForEvent(event);
     }
 
     private boolean isTriggerConditionMet(WeatherEvent event) {
