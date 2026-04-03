@@ -151,7 +151,7 @@ export default function RegisterPage() {
 
             <h1 className="text-2xl font-bold text-gray-800">Create Your Account</h1>
             <p className="text-gray-500 text-sm mt-1">
-              Register as a EarnSafe protected delivery partner
+              Register as an EarnSafe protected delivery partner
             </p>
           </div>
 
