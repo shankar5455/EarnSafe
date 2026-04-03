@@ -1,8 +1,8 @@
-# GigShield — AI-Powered Parametric Insurance for India's Gig Delivery Workers
+# EarnSafe — AI-Powered Parametric Insurance for India's Gig Delivery Workers
 
 > Guidewire DEVTrails 2026 · Full-Stack Implementation
 
-GigShield is a full-stack web platform that protects gig delivery workers (Swiggy, Zomato, Zepto, Blinkit, Amazon, etc.) from **income loss** caused by external disruptions: heavy rain, floods, heatwaves, pollution spikes, and zone closures. The frontend communicates with the backend entirely through REST APIs backed by a live MySQL database.
+EarnSafe is a full-stack web platform that protects gig delivery workers (Swiggy, Zomato, Zepto, Blinkit, Amazon, etc.) from **income loss** caused by external disruptions: heavy rain, floods, heatwaves, pollution spikes, and zone closures. The frontend communicates with the backend entirely through REST APIs backed by a live MySQL database.
 
 ---
 
@@ -38,13 +38,13 @@ GigShield is a full-stack web platform that protects gig delivery workers (Swigg
 
 ## 1. Project Overview
 
-GigShield is a **parametric micro-insurance platform** built for India's gig economy. Workers subscribe to a weekly income-protection plan. When a verified disruption event (rain > 30 mm, AQI > 300, etc.) occurs in their zone, the system automatically generates a claim — no paperwork, no manual filing. Premiums are calculated dynamically using a risk engine that weighs weather data, zone safety, shift type, and daily earnings.
+EarnSafe is a **parametric micro-insurance platform** built for India's gig economy. Workers subscribe to a weekly income-protection plan. When a verified disruption event (rain > 30 mm, AQI > 300, etc.) occurs in their zone, the system automatically generates a claim — no paperwork, no manual filing. Premiums are calculated dynamically using a risk engine that weighs weather data, zone safety, shift type, and daily earnings.
 
 ---
 
 ## 2. Problem Statement
 
-India has 15+ million gig delivery workers. When heavy rain hits a city, deliveries stop — but traditional insurance does not cover this kind of income loss. GigShield addresses this with:
+India has 15+ million gig delivery workers. When heavy rain hits a city, deliveries stop — but traditional insurance does not cover this kind of income loss. EarnSafe addresses this with:
 
 - **Parametric triggers**: Claims fire automatically when verified thresholds are crossed.
 - **Weekly micro-premiums**: Starting at ₹39/week, adjusted per worker risk profile.
@@ -93,7 +93,7 @@ India has 15+ million gig delivery workers. When heavy rain hits a city, deliver
         │
         ├── Spring Security (JWT filter)
         ├── REST Controllers  →  Service layer  →  JPA Repositories
-        └── MySQL Database (gigshield_db)
+        └── MySQL Database (earnsafe_db)
 ```
 
 The frontend never talks to the database directly. All state mutations and reads go through the backend REST API. The backend validates the JWT on every protected request before executing business logic.
@@ -103,7 +103,7 @@ The frontend never talks to the database directly. All state mutations and reads
 ## 6. Folder Structure
 
 ```
-GigShield/
+EarnSafe/
 ├── frontend/                        # React + Vite frontend
 │   ├── src/
 │   │   ├── api/
@@ -119,7 +119,7 @@ GigShield/
 │   └── package.json
 │
 ├── backend/                         # Spring Boot backend
-│   ├── src/main/java/com/gigshield/
+│   ├── src/main/java/com/earnsafe/
 │   │   ├── config/
 │   │   │   ├── SecurityConfig.java
 │   │   │   └── DataSeeder.java      # Optional startup seeder (disable for production)
@@ -235,7 +235,7 @@ Only public-safe values belong here. Copy `frontend/.env.example` and fill in:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
-VITE_APP_NAME=GigShield
+VITE_APP_NAME=EarnSafe
 ```
 
 > Do **not** store secret API keys (database passwords, JWT secrets, payment keys) in the frontend `.env`. Vite embeds all `VITE_` variables into the client bundle — they are visible to anyone who inspects the JavaScript.
@@ -245,7 +245,7 @@ VITE_APP_NAME=GigShield
 All secrets live here. Copy `backend/.env.example` and fill in:
 
 ```env
-DB_URL=jdbc:mysql://localhost:3306/gigshield_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_URL=jdbc:mysql://localhost:3306/earnsafe_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 DB_USERNAME=root
 DB_PASSWORD=your_mysql_password
 
@@ -280,7 +280,7 @@ app.seed.enabled=${SEED_ENABLED:true}
 
 ```sql
 -- Run once in MySQL
-CREATE DATABASE IF NOT EXISTS gigshield_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS earnsafe_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 Spring Boot will create all tables automatically on first startup (`spring.jpa.hibernate.ddl-auto=update`).
@@ -468,11 +468,11 @@ Once both servers are running, verify the following end-to-end flow:
 The backend includes a `DataSeeder` class at:
 
 ```
-backend/src/main/java/com/gigshield/config/DataSeeder.java
+backend/src/main/java/com/earnsafe/config/DataSeeder.java
 ```
 
 On startup, if the database is empty, it seeds:
-- 1 admin account: `admin@gigshield.com` / `Admin@123`
+- 1 admin account: `admin@earnsafe.com` / `Admin@123`
 - 5 worker accounts: `ravi`, `priya`, `suresh`, `anjali`, `rafiq` at `@example.com` / `Worker@123`
 - Sample risk zones, policies, and weather events
 
@@ -554,7 +554,7 @@ Base premium: **₹39/week**
 | Grocery/quick-commerce delivery | +₹3 |
 | Safe zone discount | −₹5 |
 
-The engine returns a `finalWeeklyPremium`, a `riskScore` (LOW / MEDIUM / HIGH), and an itemized `breakdown` list. Source: `backend/src/main/java/com/gigshield/service/PremiumService.java`.
+The engine returns a `finalWeeklyPremium`, a `riskScore` (LOW / MEDIUM / HIGH), and an itemized `breakdown` list. Source: `backend/src/main/java/com/earnsafe/service/PremiumService.java`.
 
 ---
 
@@ -592,7 +592,7 @@ Zones and their risk scores are stored in the `risk_zones` table and served via 
 
 ## 23. Hackathon Relevance — DEVTrails Mapping
 
-| DEVTrails Requirement | GigShield Implementation |
+| DEVTrails Requirement | EarnSafe Implementation |
 |-----------------------|--------------------------|
 | Weekly pricing model | Implemented — weekly premium calculated per worker risk profile |
 | Income loss coverage only | Implemented — only delivery disruption covered, not health/vehicle |
@@ -624,7 +624,7 @@ The following files likely need review or cleanup for a fully production-style i
 | File | Reason |
 |------|--------|
 | `backend/src/main/resources/application.properties` | Hardcodes DB password and JWT secret — migrate to environment variables |
-| `backend/src/main/java/com/gigshield/config/DataSeeder.java` | Disable (`app.seed.enabled=false`) before final demo if using real registered users |
+| `backend/src/main/java/com/earnsafe/config/DataSeeder.java` | Disable (`app.seed.enabled=false`) before final demo if using real registered users |
 | `frontend/src/pages/AdminDashboardPage.jsx` | Verify all KPI cards fetch from `/api/admin/dashboard`, not local state |
 | `frontend/src/pages/DashboardPage.jsx` | Verify policies and claims sections call APIs, not static arrays |
 | `frontend/src/pages/TriggerMonitorPage.jsx` | Verify live events load from `/api/triggers/live` |

@@ -151,13 +151,13 @@ export default function RegisterPage() {
 
             <h1 className="text-2xl font-bold text-gray-800">Create Your Account</h1>
             <p className="text-gray-500 text-sm mt-1">
-              Register as a GigShield protected delivery partner
+              Register as a EarnSafe protected delivery partner
             </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
-              <p className="font-semibold mb-1">What you get with GigShield:</p>
+              <p className="font-semibold mb-1">What you get with EarnSafe:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Weekly income protection from ₹39/week</li>
                 <li>Automatic claims during heavy rain, floods, heatwaves, and zone closures</li>

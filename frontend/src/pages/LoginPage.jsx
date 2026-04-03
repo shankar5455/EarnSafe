@@ -32,7 +32,7 @@ export default function LoginPage() {
 
   const fillDemo = (type) => {
     if (type === 'admin') {
-      setForm({ email: 'admin@gigshield.com', password: 'Admin@123' });
+      setForm({ email: 'admin@earnsafe.com', password: 'Admin@123' });
     } else {
       setForm({ email: 'ravi@example.com', password: 'Worker@123' });
     }
@@ -50,7 +50,7 @@ export default function LoginPage() {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
-            <p className="text-gray-500 text-sm mt-1">Sign in to your GigShield account</p>
+            <p className="text-gray-500 text-sm mt-1">Sign in to your EarnSafe account</p>
           </div>
 
           {/* Demo Quick Login */}

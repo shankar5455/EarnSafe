@@ -8,13 +8,13 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-white">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold text-lg">GigShield</span>
+            <span className="font-bold text-lg">EarnSafe</span>
           </div>
           <p className="text-sm text-gray-400">
             AI-Powered Parametric Insurance for India's Gig Delivery Workers
           </p>
           <p className="text-xs text-gray-500">
-            © 2026 GigShield · Guidewire DEVTrails 2026
+            © 2026 EarnSafe · Guidewire DEVTrails 2026
           </p>
         </div>
       </div>

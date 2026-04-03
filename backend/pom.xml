@@ -13,11 +13,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.gigshield</groupId>
-    <artifactId>gigshield-backend</artifactId>
+    <groupId>com.earnsafe</groupId>
+    <artifactId>earnsafe-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>gigshield-backend</name>
-    <description>GigShield - AI-Powered Parametric Insurance for India's Gig Delivery Workers</description>
+    <name>earnsafe-backend</name>
+    <description>EarnSafe - AI-Powered Parametric Insurance for India's Gig Delivery Workers</description>
 
     <properties>
         <java.version>17</java.version>

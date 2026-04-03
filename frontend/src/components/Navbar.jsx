@@ -35,7 +35,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 text-blue-600 font-bold text-xl">
             <Shield className="h-7 w-7" />
-            <span>GigShield</span>
+            <span>EarnSafe</span>
           </Link>
 
           {/* Desktop Nav */}

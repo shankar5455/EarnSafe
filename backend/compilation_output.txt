@@ -106,8 +106,8 @@ Progress (1): 1.0 kBProgress (1): 2.7 kBProgress (1): 3.5 kB                 
 Downloading from central: https://repo.maven.apache.org/maven2/org/testcontainers/testcontainers-bom/1.19.5/testcontainers-bom-1.19.5.pom
 Progress (1): 1.2 kBProgress (1): 9.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/testcontainers/testcontainers-bom/1.19.5/testcontainers-bom-1.19.5.pom (9.1 kB at 247 kB/s)
 [INFO] 
-[INFO] ------------------< com.gigshield:gigshield-backend >-------------------
-[INFO] Building gigshield-backend 0.0.1-SNAPSHOT
+[INFO] ------------------< com.earnsafe:earnsafe-backend >-------------------
+[INFO] Building earnsafe-backend 0.0.1-SNAPSHOT
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-maven-plugin/3.2.3/spring-boot-maven-plugin-3.2.3.pom
@@ -577,7 +577,7 @@ Progress (3): 392/548 kB | 0.9/1.9 MB | 223/513 kBProgress (3): 392/548 kB | 0.
 Progress (2): 1.5/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.6/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 418/513 kBProgress (2): 1.7/1.9 MB | 434/513 kBProgress (2): 1.7/1.9 MB | 434/513 kBProgress (2): 1.7/1.9 MB | 451/513 kBProgress (2): 1.7/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 467/513 kBProgress (2): 1.8/1.9 MB | 483/513 kBProgress (2): 1.8/1.9 MB | 500/513 kBProgress (2): 1.8/1.9 MB | 513 kB    Progress (2): 1.8/1.9 MB | 513 kB                                 Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-core/6.2.2/spring-security-core-6.2.2.jar (513 kB at 602 kB/s)
 Progress (1): 1.9/1.9 MBProgress (1): 1.9/1.9 MBProgress (1): 1.9 MB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/spring-core/6.1.4/spring-core-6.1.4.jar (1.9 MB at 2.2 MB/s)
 [INFO] 
-[INFO] --- clean:3.3.2:clean (default-clean) @ gigshield-backend ---
+[INFO] --- clean:3.3.2:clean (default-clean) @ earnsafe-backend ---
 Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.pom
 Progress (1): 724 BProgress (1): 2.3 kBProgress (1): 4.5 kBProgress (1): 8.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.pom (8.7 kB at 234 kB/s)
 Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/13/plexus-13.pom
@@ -585,7 +585,7 @@ Progress (1): 693 BProgress (1): 2.5 kBProgress (1): 6.4 kBProgress (1): 8.9 
 Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.jar
 Progress (1): 3.6/192 kBProgress (1): 16/192 kB Progress (1): 32/192 kBProgress (1): 48/192 kBProgress (1): 65/192 kBProgress (1): 81/192 kBProgress (1): 98/192 kBProgress (1): 114/192 kBProgress (1): 130/192 kBProgress (1): 147/192 kBProgress (1): 163/192 kBProgress (1): 179/192 kBProgress (1): 192 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.jar (192 kB at 5.8 MB/s)
 [INFO] 
-[INFO] --- resources:3.3.1:resources (default-resources) @ gigshield-backend ---
+[INFO] --- resources:3.3.1:resources (default-resources) @ earnsafe-backend ---
 Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.26/plexus-interpolation-1.26.pom
 Progress (1): 1.4 kBProgress (1): 2.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.26/plexus-interpolation-1.26.pom (2.7 kB at 78 kB/s)
 Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/5.1/plexus-5.1.pom
@@ -643,7 +643,7 @@ Progress (1): 327/587 kBProgress (1): 343/587 kBProgress (1): 360/587 kBProgr
 [INFO] Copying 1 resource from src/main/resources to target/classes
 [INFO] Copying 0 resource from src/main/resources to target/classes
 [INFO] 
-[INFO] --- compiler:3.11.0:compile (default-compile) @ gigshield-backend ---
+[INFO] --- compiler:3.11.0:compile (default-compile) @ earnsafe-backend ---
 Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-utils/3.3.4/maven-shared-utils-3.3.4.pom
 Progress (1): 790 BProgress (1): 2.3 kBProgress (1): 4.3 kBProgress (1): 5.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-utils/3.3.4/maven-shared-utils-3.3.4.pom (5.8 kB at 172 kB/s)
 Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/34/maven-shared-components-34.pom
@@ -723,13 +723,13 @@ Progress (1): 303/334 kBProgress (1): 319/334 kBProgress (1): 334 kB         
 [INFO] -------------------------------------------------------------
 [WARNING] COMPILATION WARNING : 
 [INFO] -------------------------------------------------------------
-[WARNING] /home/runner/work/GigShield/GigShield/backend/src/main/java/com/gigshield/entity/Claim.java:[53,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /home/runner/work/EarnSafe/EarnSafe/backend/src/main/java/com/earnsafe/entity/Claim.java:[53,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
 [INFO] 1 warning
 [INFO] -------------------------------------------------------------
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 
 [INFO] -------------------------------------------------------------
-[ERROR] /home/runner/work/GigShield/GigShield/backend/src/main/java/com/gigshield/service/PremiumService.java:[16,17] cannot find symbol
+[ERROR] /home/runner/work/EarnSafe/EarnSafe/backend/src/main/java/com/earnsafe/service/PremiumService.java:[16,17] cannot find symbol
   symbol:   class StringBuilder
   location: package java.util
 [INFO] 1 error
@@ -740,8 +740,8 @@ Progress (1): 303/334 kBProgress (1): 319/334 kBProgress (1): 334 kB         
 [INFO] Total time:  16.259 s
 [INFO] Finished at: 2026-04-02T05:23:31Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project gigshield-backend: Compilation failure
-[ERROR] /home/runner/work/GigShield/GigShield/backend/src/main/java/com/gigshield/service/PremiumService.java:[16,17] cannot find symbol
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project earnsafe-backend: Compilation failure
+[ERROR] /home/runner/work/EarnSafe/EarnSafe/backend/src/main/java/com/earnsafe/service/PremiumService.java:[16,17] cannot find symbol
 [ERROR]   symbol:   class StringBuilder
 [ERROR]   location: package java.util
 [ERROR] 

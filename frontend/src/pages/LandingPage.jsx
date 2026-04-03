@@ -60,7 +60,7 @@ export default function LandingPage() {
             Not Just Your Vehicle
           </h1>
           <p className="text-xl text-blue-200 mb-10 max-w-3xl mx-auto">
-            GigShield is India's first AI-powered parametric income insurance for gig delivery workers.
+            EarnSafe is India's first AI-powered parametric income insurance for gig delivery workers.
             When heavy rain, floods, or zone closures stop your deliveries — we pay you automatically.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -114,9 +114,9 @@ export default function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-3">Why GigShield?</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-3">Why EarnSafe?</h2>
             <p className="text-gray-500 max-w-2xl mx-auto">
-              Traditional insurance doesn't work for gig workers. GigShield is built specifically for your reality.
+              Traditional insurance doesn't work for gig workers. EarnSafe is built specifically for your reality.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -140,7 +140,7 @@ export default function LandingPage() {
       <section className="py-16 px-4 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-3">What Triggers a Claim?</h2>
-          <p className="text-gray-500 mb-10">GigShield monitors 5 types of external disruptions that impact delivery workers.</p>
+          <p className="text-gray-500 mb-10">EarnSafe monitors 5 types of external disruptions that impact delivery workers.</p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { emoji: '🌧️', label: 'Heavy Rain', threshold: '>30mm' },
@@ -186,7 +186,7 @@ export default function LandingPage() {
           <Shield className="h-12 w-12 mx-auto mb-4 text-blue-200" />
           <h2 className="text-3xl font-bold mb-3">Start Protecting Your Income Today</h2>
           <p className="text-blue-200 mb-8">
-            Join thousands of delivery workers protected by GigShield. Just ₹39/week.
+            Join thousands of delivery workers protected by EarnSafe. Just ₹39/week.
           </p>
           <Link
             to="/register"
