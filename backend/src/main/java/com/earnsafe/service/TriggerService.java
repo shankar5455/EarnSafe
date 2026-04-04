@@ -49,7 +49,7 @@ public class TriggerService {
                 .floodAlert(request.getFloodAlert() != null ? request.getFloodAlert() : false)
                 .closureAlert(request.getClosureAlert() != null ? request.getClosureAlert() : false)
                 .eventTimestamp(LocalDateTime.now())
-                .sourceType("MOCK")
+                .sourceType("MANUAL_TRIGGER")
                 .build();
 
         return weatherEventRepository.save(event);

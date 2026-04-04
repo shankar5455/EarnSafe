@@ -167,7 +167,7 @@ public class TriggerMonitoringService {
                 .floodAlert(floodAlert)
                 .closureAlert(closureAlert)
                 .eventTimestamp(LocalDateTime.now())
-                .sourceType("AUTO")
+                .sourceType("SCHEDULER_SIMULATED")
                 .build();
     }
 }
