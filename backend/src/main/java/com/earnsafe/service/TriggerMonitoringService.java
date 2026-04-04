@@ -2,6 +2,7 @@ package com.earnsafe.service;
 
 import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.entity.Policy;
+import com.earnsafe.entity.User;
 import com.earnsafe.entity.WeatherEvent;
 import com.earnsafe.repository.PolicyRepository;
 import com.earnsafe.repository.WeatherEventRepository;
@@ -46,17 +47,19 @@ public class TriggerMonitoringService {
             return;
         }
 
-        // Group policies by city to avoid redundant event creation per city
-        Map<String, List<Policy>> byCity = activePolicies.stream()
-                .filter(p -> p.getUser() != null && p.getUser().getCity() != null)
-                .collect(Collectors.groupingBy(p -> p.getUser().getCity()));
+        // Group policies by zone (preferred: zoneCovered → user.zone → user.city)
+        Map<String, List<Policy>> byZone = activePolicies.stream()
+                .filter(p -> resolveZone(p) != null)
+                .collect(Collectors.groupingBy(this::resolveZone));
 
-        log.info("[AutoTrigger] Scanning {} unique city/zone(s) for disruptions: {}",
-                byCity.size(), byCity.keySet());
+        log.info("[AutoTrigger] Scanning {} unique zone(s) for disruptions: {}",
+                byZone.size(), byZone.keySet());
 
         int totalClaims = 0;
-        for (String city : byCity.keySet()) {
-            List<ClaimResponse> claims = evaluateCityConditions(city);
+        for (Map.Entry<String, List<Policy>> entry : byZone.entrySet()) {
+            String zone = entry.getKey();
+            String city = resolveCity(entry.getValue());
+            List<ClaimResponse> claims = evaluateZoneConditions(zone, city);
             totalClaims += claims.size();
         }
 
@@ -64,20 +67,52 @@ public class TriggerMonitoringService {
     }
 
     /**
-     * Simulates weather condition checks for a given city and triggers evaluation.
+     * Resolves the zone key for a policy using the preferred fallback chain:
+     * policy.zoneCovered → user.zone → user.city.
+     */
+    private String resolveZone(Policy p) {
+        if (p.getZoneCovered() != null && !p.getZoneCovered().isBlank()) {
+            return p.getZoneCovered();
+        }
+        User user = p.getUser();
+        if (user != null) {
+            if (user.getZone() != null && !user.getZone().isBlank()) {
+                return user.getZone();
+            }
+            if (user.getCity() != null && !user.getCity().isBlank()) {
+                return user.getCity();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the actual city for a group of policies in the same zone.
+     * Uses the first policy whose user has a non-blank city.
+     */
+    private String resolveCity(List<Policy> policies) {
+        return policies.stream()
+                .map(p -> p.getUser() != null ? p.getUser().getCity() : null)
+                .filter(c -> c != null && !c.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Simulates weather condition checks for a given zone and triggers evaluation.
      * Cycles through parametric event types so each scheduler run tests a different condition.
      */
-    private List<ClaimResponse> evaluateCityConditions(String city) {
-        log.info("[AutoTrigger] Checking triggers for zone/city: {}", city);
+    private List<ClaimResponse> evaluateZoneConditions(String zone, String city) {
+        log.info("[AutoTrigger] Checking triggers for zone: {} (city: {})", zone, city);
 
         // Simulate realistic disruption conditions that breach parametric thresholds.
         // In a production setup this data would come from a live weather/AQI API.
-        WeatherEvent event = buildSimulatedEvent(city);
+        WeatherEvent event = buildSimulatedEvent(zone, city);
         weatherEventRepository.save(event);
 
         List<ClaimResponse> claims = triggerService.evaluatePoliciesForEvent(event);
         if (claims.isEmpty()) {
-            log.info("[AutoTrigger] No disruption triggered for city: {}", city);
+            log.info("[AutoTrigger] No disruption triggered for zone: {}", zone);
         }
         return claims;
     }
@@ -86,8 +121,9 @@ public class TriggerMonitoringService {
      * Builds a simulated weather event that meets parametric trigger thresholds.
      * Rotates through HEAVY_RAIN → HEATWAVE → POLLUTION_SPIKE every scheduler cycle
      * based on the current minute, so different conditions are exercised over time.
+     * city is set to the actual user/policy city; zone is the coverage zone used for grouping.
      */
-    private WeatherEvent buildSimulatedEvent(String city) {
+    private WeatherEvent buildSimulatedEvent(String zone, String city) {
         int minute = LocalDateTime.now().getMinute();
         String eventType;
         Double rainfallMm = null;
@@ -122,8 +158,8 @@ public class TriggerMonitoringService {
         }
 
         return WeatherEvent.builder()
-                .city(city)
-                .zone(city)
+                .city(city != null ? city : zone)
+                .zone(zone)
                 .eventType(eventType)
                 .rainfallMm(rainfallMm != null ? java.math.BigDecimal.valueOf(rainfallMm) : null)
                 .temperature(temperature != null ? java.math.BigDecimal.valueOf(temperature) : null)
