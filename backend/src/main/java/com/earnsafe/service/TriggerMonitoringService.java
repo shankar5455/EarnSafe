@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,11 +35,12 @@ public class TriggerMonitoringService {
      * For each unique city that has at least one ACTIVE policy, a simulated weather event
      * is generated and evaluated against disruption thresholds.
      */
+    @Transactional
     @Scheduled(fixedDelayString = "${app.trigger.interval:300000}")
     public void runTriggerScan() {
         log.info("=== [AutoTrigger] Starting scheduled trigger scan at {} ===", LocalDateTime.now());
 
-        List<Policy> activePolicies = policyRepository.findByStatus(Policy.PolicyStatus.ACTIVE);
+        List<Policy> activePolicies = policyRepository.findActivePoliciesWithUser();
         if (activePolicies.isEmpty()) {
             log.info("[AutoTrigger] No active policies found. Skipping scan.");
             return;

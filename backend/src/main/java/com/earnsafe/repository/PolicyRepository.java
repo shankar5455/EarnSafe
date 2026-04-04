@@ -19,4 +19,7 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
 
     @Query("SELECT p FROM Policy p WHERE p.user = :user AND p.status = 'ACTIVE'")
     Optional<Policy> findActiveByUser(User user);
+
+    @Query("SELECT p FROM Policy p JOIN FETCH p.user WHERE p.status = 'ACTIVE'")
+    List<Policy> findActivePoliciesWithUser();
 }
