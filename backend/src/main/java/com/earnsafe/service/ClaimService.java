@@ -8,6 +8,7 @@ import com.earnsafe.entity.WeatherEvent;
 import com.earnsafe.repository.ClaimRepository;
 import com.earnsafe.repository.PolicyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClaimService {
@@ -47,17 +49,18 @@ public class ClaimService {
                 ? event.getEventTimestamp().toLocalDate()
                 : LocalDate.now();
 
-        // Fraud checks
+        // Duplicate prevention: skip if a claim already exists for this policy + date + trigger type
         boolean isDuplicate = claimRepository.existsByUserAndDisruptionDateAndTriggerType(
                 user, disruptionDate, event.getEventType());
 
+        if (isDuplicate) {
+            log.info("Duplicate claim detected for user {} on {} (type: {}). Skipping creation.",
+                    user.getEmail(), disruptionDate, event.getEventType());
+            throw new RuntimeException("Duplicate claim: a claim already exists for this policy, date, and event type");
+        }
+
         boolean fraudFlag = false;
         String fraudReason = null;
-
-        if (isDuplicate) {
-            fraudFlag = true;
-            fraudReason = "Duplicate claim for same date and trigger type";
-        }
 
         // Zone mismatch check
         String userZone = user.getZone() != null ? user.getZone() : user.getCity();
