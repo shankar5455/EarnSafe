@@ -8,6 +8,7 @@ import com.earnsafe.entity.WeatherEvent;
 import com.earnsafe.repository.ClaimRepository;
 import com.earnsafe.repository.PolicyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,12 +18,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClaimService {
 
     private final ClaimRepository claimRepository;
     private final PolicyRepository policyRepository;
+    private final FraudService fraudService;
+    private final PayoutService payoutService;
 
     public List<ClaimResponse> getMyClaims(User user) {
         return claimRepository.findByUserOrderByCreatedAtDesc(user)
@@ -47,25 +51,18 @@ public class ClaimService {
                 ? event.getEventTimestamp().toLocalDate()
                 : LocalDate.now();
 
-        // Fraud checks
+        // Duplicate prevention: skip if a claim already exists for this policy + date + trigger type
         boolean isDuplicate = claimRepository.existsByUserAndDisruptionDateAndTriggerType(
                 user, disruptionDate, event.getEventType());
 
-        boolean fraudFlag = false;
-        String fraudReason = null;
-
         if (isDuplicate) {
-            fraudFlag = true;
-            fraudReason = "Duplicate claim for same date and trigger type";
+            log.info("Duplicate claim detected for user {} on {} (type: {}). Skipping creation.",
+                    user.getEmail(), disruptionDate, event.getEventType());
+            throw new RuntimeException("Duplicate claim: a claim already exists for this policy, date, and event type");
         }
 
-        // Zone mismatch check
-        String userZone = user.getZone() != null ? user.getZone() : user.getCity();
-        String eventZone = event.getZone() != null ? event.getZone() : event.getCity();
-        if (!userZone.equalsIgnoreCase(eventZone) && !user.getCity().equalsIgnoreCase(event.getCity())) {
-            fraudFlag = true;
-            fraudReason = "Zone mismatch between policy and event";
-        }
+        // AI fraud detection
+        FraudService.FraudResult fraudResult = fraudService.evaluate(user, event);
 
         // Estimate lost hours and income
         BigDecimal avgWorkHours = user.getAverageWorkingHours() != null
@@ -79,8 +76,9 @@ public class ClaimService {
         BigDecimal estimatedLostHours = avgWorkHours.multiply(lostHoursFactor).setScale(2, RoundingMode.HALF_UP);
         BigDecimal estimatedLostIncome = avgDailyEarnings.multiply(lostHoursFactor).setScale(2, RoundingMode.HALF_UP);
 
-        Claim.ClaimStatus initialStatus = fraudFlag
-                ? Claim.ClaimStatus.UNDER_VALIDATION
+        // If fraudScore >= 0.5 → UNDER_REVIEW, else TRIGGERED
+        Claim.ClaimStatus initialStatus = fraudResult.fraudFlag()
+                ? Claim.ClaimStatus.UNDER_REVIEW
                 : Claim.ClaimStatus.TRIGGERED;
 
         Claim claim = Claim.builder()
@@ -95,14 +93,15 @@ public class ClaimService {
                 .estimatedLostIncome(estimatedLostIncome)
                 .validationStatus("PENDING")
                 .claimStatus(initialStatus)
-                .fraudFlag(fraudFlag)
-                .fraudReason(fraudReason)
-                .payoutAmount(fraudFlag ? BigDecimal.ZERO : estimatedLostIncome)
+                .fraudFlag(fraudResult.fraudFlag())
+                .fraudReason(fraudResult.reason())
+                .fraudScore(fraudResult.fraudScore())
+                .payoutAmount(fraudResult.fraudFlag() ? BigDecimal.ZERO : estimatedLostIncome)
                 .build();
 
         claim = claimRepository.save(claim);
 
-        if (!fraudFlag) {
+        if (!fraudResult.fraudFlag()) {
             // Auto-approve non-fraud claims
             claim.setClaimStatus(Claim.ClaimStatus.APPROVED);
             claim.setValidationStatus("AUTO_APPROVED");
@@ -133,12 +132,8 @@ public class ClaimService {
     public ClaimResponse markPaid(Long id) {
         Claim claim = claimRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Claim not found"));
-        if (claim.getClaimStatus() != Claim.ClaimStatus.APPROVED) {
-            throw new RuntimeException("Only approved claims can be marked as paid");
-        }
-        claim.setClaimStatus(Claim.ClaimStatus.PAID);
-        claim.setValidationStatus("PAID");
-        return mapToResponse(claimRepository.save(claim));
+        Claim paid = payoutService.processPayout(claim);
+        return mapToResponse(paid);
     }
 
     private BigDecimal getImpactFactor(WeatherEvent event) {
@@ -170,6 +165,8 @@ public class ClaimService {
                 .claimStatus(claim.getClaimStatus().name())
                 .fraudFlag(claim.getFraudFlag())
                 .fraudReason(claim.getFraudReason())
+                .fraudScore(claim.getFraudScore())
+                .transactionId(claim.getTransactionId())
                 .payoutAmount(claim.getPayoutAmount())
                 .createdAt(claim.getCreatedAt())
                 .updatedAt(claim.getUpdatedAt())

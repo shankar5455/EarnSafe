@@ -49,7 +49,7 @@ public class TriggerService {
                 .floodAlert(request.getFloodAlert() != null ? request.getFloodAlert() : false)
                 .closureAlert(request.getClosureAlert() != null ? request.getClosureAlert() : false)
                 .eventTimestamp(LocalDateTime.now())
-                .sourceType("MOCK")
+                .sourceType("MANUAL_TRIGGER")
                 .build();
 
         return weatherEventRepository.save(event);
@@ -64,11 +64,23 @@ public class TriggerService {
         // Check if user has active policy
         policyRepository.findActiveByUser(user).ifPresent(policy -> {
             if (isTriggerConditionMet(event)) {
+                LocalDate eventDate = event.getEventTimestamp() != null
+                        ? event.getEventTimestamp().toLocalDate()
+                        : LocalDate.now();
+
+                boolean alreadyExists = claimRepository.existsByUserAndDisruptionDateAndTriggerType(
+                        user, eventDate, event.getEventType());
+                if (alreadyExists) {
+                    log.info("Duplicate claim already exists for user {} (date: {}, type: {}). Not creating a new claim.",
+                            user.getEmail(), eventDate, event.getEventType());
+                    return;
+                }
+
                 try {
                     ClaimResponse claim = claimService.triggerClaim(user, event);
                     claims.add(claim);
                 } catch (Exception e) {
-                    // Log but don't fail
+                    log.warn("Failed to create claim for user {}: {}", user.getEmail(), e.getMessage());
                 }
             }
         });

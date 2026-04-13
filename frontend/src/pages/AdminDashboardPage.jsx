@@ -97,8 +97,8 @@ export default function AdminDashboardPage() {
               <DashboardCard title="Paid Claims" value={stats.paidClaims} icon={DollarSign} color="purple" />
               <DashboardCard title="Approved Claims" value={stats.approvedClaims} icon={CheckCircle} color="teal" />
               <DashboardCard title="Rejected Claims" value={stats.rejectedClaims} icon={XCircle} color="red" />
-              <DashboardCard title="Pending Claims" value={stats.pendingClaims} icon={AlertTriangle} color="orange" />
-              <DashboardCard title="High Risk Zones" value={stats.topRiskyZones?.length || 0} icon={TrendingUp} color="red" />
+              <DashboardCard title="Fraud Detected" value={stats.fraudDetectedCount ?? 0} icon={AlertTriangle} color="red" subtitle="Flagged claims" />
+              <DashboardCard title="Total Payouts" value={`₹${(stats.totalPayouts ?? 0).toLocaleString('en-IN')}`} icon={TrendingUp} color="green" subtitle="Paid out to workers" />
             </div>
 
             {/* Charts */}

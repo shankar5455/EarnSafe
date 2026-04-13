@@ -7,6 +7,7 @@ const statusColors = {
   // Claim statuses
   TRIGGERED: 'bg-blue-100 text-blue-700',
   UNDER_VALIDATION: 'bg-orange-100 text-orange-700',
+  UNDER_REVIEW: 'bg-orange-100 text-orange-700',
   APPROVED: 'bg-green-100 text-green-700',
   REJECTED: 'bg-red-100 text-red-700',
   PAID: 'bg-purple-100 text-purple-700',

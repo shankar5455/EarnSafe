@@ -26,6 +26,8 @@ public class PolicyResponse {
     private String zoneCovered;
     private String status;
     private String riskScore;
+    /** Numeric risk score in [0.0, 1.0] from RiskService */
+    private Double riskScoreNumeric;
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime createdAt;

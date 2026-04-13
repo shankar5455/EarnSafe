@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const claimStatusData = [
     { name: 'Approved', value: claims.filter((c) => c.claimStatus === 'APPROVED').length },
     { name: 'Paid', value: claims.filter((c) => c.claimStatus === 'PAID').length },
-    { name: 'Pending', value: claims.filter((c) => c.claimStatus === 'TRIGGERED' || c.claimStatus === 'UNDER_VALIDATION').length },
+    { name: 'Pending', value: claims.filter((c) => c.claimStatus === 'TRIGGERED' || c.claimStatus === 'UNDER_VALIDATION' || c.claimStatus === 'UNDER_REVIEW').length },
     { name: 'Rejected', value: claims.filter((c) => c.claimStatus === 'REJECTED').length },
   ].filter((d) => d.value > 0);
 
@@ -159,7 +159,7 @@ export default function DashboardPage() {
           <DashboardCard
             title="Risk Level"
             value={premium?.riskScore || activePolicy?.riskScore || 'N/A'}
-            subtitle="Your zone risk"
+            subtitle={premium?.riskScoreNumeric !== undefined ? `AI Score: ${(premium.riskScoreNumeric * 100).toFixed(0)}%` : 'Your zone risk'}
             icon={Zap}
             color={premium?.riskScore === 'HIGH' ? 'red' : premium?.riskScore === 'LOW' ? 'green' : 'orange'}
           />
