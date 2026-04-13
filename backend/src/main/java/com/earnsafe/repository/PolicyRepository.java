@@ -1,6 +1,5 @@
 package com.earnsafe.repository;
 
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -27,7 +26,6 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
     @Query("SELECT p FROM Policy p WHERE p.user = :user AND p.status = 'ACTIVE'")
     Optional<Policy> findActiveByUser(User user);
 
-<<<<<<< HEAD
     /**
      * FIX for LazyInitializationException:
      * Fetch policy + user together so scheduler can safely access user.city and user.zone
@@ -35,8 +33,3 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
     @Query("SELECT p FROM Policy p JOIN FETCH p.user WHERE p.status = 'ACTIVE'")
     List<Policy> findActivePoliciesWithUser();
 }
-=======
-    @Query("SELECT p FROM Policy p JOIN FETCH p.user WHERE p.status = 'ACTIVE'")
-    List<Policy> findActivePoliciesWithUser();
-}
->>>>>>> 84d46b715f50900d5fcf9292b90b3f41007422be
