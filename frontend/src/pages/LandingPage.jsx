@@ -51,10 +51,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-24 px-4">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-700/50 px-4 py-2 rounded-full text-sm text-blue-200 mb-6">
-            <Zap className="h-4 w-4" />
-            Guidewire DEVTrails 2026 · Phase 2 MVP
-          </div>
           <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
             Protect Your <span className="text-blue-300">Income</span>,<br />
             Not Just Your Vehicle

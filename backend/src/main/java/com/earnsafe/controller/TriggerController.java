@@ -1,13 +1,16 @@
 package com.earnsafe.controller;
 
-import com.earnsafe.dto.request.MockEventRequest;
-import com.earnsafe.dto.response.ClaimResponse;
-import com.earnsafe.entity.WeatherEvent;
+
 import com.earnsafe.service.TriggerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import com.earnsafe.dto.request.MockEventRequest;
+import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.entity.User;
+import com.earnsafe.entity.WeatherEvent;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

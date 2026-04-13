@@ -1,5 +1,6 @@
 package com.earnsafe.controller;
 
+
 import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.entity.User;
 import com.earnsafe.service.ClaimService;

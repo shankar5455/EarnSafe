@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,15 +32,20 @@ public class TriggerMonitoringService {
     private final TriggerService triggerService;
 
     /**
-     * Scheduled trigger scan – runs every {@code app.trigger.interval} ms (default 5 min).
-     * For each unique city that has at least one ACTIVE policy, a simulated weather event
-     * is generated and evaluated against disruption thresholds.
+     * Scheduled trigger scan – runs every app.trigger.interval ms (default 5 min).
+     *
+     * FIXED:
+     * - @Transactional keeps Hibernate session open
+     * - findActivePoliciesWithUser() avoids LazyInitializationException
      */
+    @Transactional
     @Scheduled(fixedDelayString = "${app.trigger.interval:300000}")
     public void runTriggerScan() {
         log.info("=== [AutoTrigger] Starting scheduled trigger scan at {} ===", LocalDateTime.now());
 
-        List<Policy> activePolicies = policyRepository.findByStatus(Policy.PolicyStatus.ACTIVE);
+        // FIX: fetch active policies WITH user eagerly loaded
+        List<Policy> activePolicies = policyRepository.findActivePoliciesWithUser();
+
         if (activePolicies.isEmpty()) {
             log.info("[AutoTrigger] No active policies found. Skipping scan.");
             return;
@@ -69,51 +76,58 @@ public class TriggerMonitoringService {
         log.info("[AutoTrigger] Checking triggers for zone/city: {}", city);
 
         // Simulate realistic disruption conditions that breach parametric thresholds.
-        // In a production setup this data would come from a live weather/AQI API.
+        // Later you can replace this with real OpenWeather API integration.
         WeatherEvent event = buildSimulatedEvent(city);
         weatherEventRepository.save(event);
 
         List<ClaimResponse> claims = triggerService.evaluatePoliciesForEvent(event);
+
         if (claims.isEmpty()) {
             log.info("[AutoTrigger] No disruption triggered for city: {}", city);
+        } else {
+            log.info("[AutoTrigger] {} claim(s) auto-created for city: {}", claims.size(), city);
         }
+
         return claims;
     }
 
     /**
      * Builds a simulated weather event that meets parametric trigger thresholds.
-     * Rotates through HEAVY_RAIN → HEATWAVE → POLLUTION_SPIKE every scheduler cycle
-     * based on the current minute, so different conditions are exercised over time.
+     * Rotates through HEAVY_RAIN → HEATWAVE → POLLUTION_SPIKE → FLOOD_ALERT → ZONE_CLOSURE
+     * every scheduler cycle based on the current minute.
      */
     private WeatherEvent buildSimulatedEvent(String city) {
         int minute = LocalDateTime.now().getMinute();
+
         String eventType;
-        Double rainfallMm = null;
-        Double temperature = null;
+        BigDecimal rainfallMm = null;
+        BigDecimal temperature = null;
         Integer aqi = null;
         boolean floodAlert = false;
         boolean closureAlert = false;
 
         // Rotate event type per 5-minute bucket (0–4)
         int bucket = (minute / 5) % 5;
+
         switch (bucket) {
             case 0 -> {
                 eventType = "HEAVY_RAIN";
-                rainfallMm = 35.0;  // threshold > 30
+                rainfallMm = BigDecimal.valueOf(35.0); // threshold > 30
             }
             case 1 -> {
                 eventType = "HEATWAVE";
-                temperature = 44.0; // threshold > 42
+                temperature = BigDecimal.valueOf(44.0); // threshold > 42
             }
             case 2 -> {
                 eventType = "POLLUTION_SPIKE";
-                aqi = 320;          // threshold > 300
+                aqi = 320; // threshold > 300
             }
             case 3 -> {
                 eventType = "FLOOD_ALERT";
                 floodAlert = true;
+                rainfallMm = BigDecimal.valueOf(80.0);
             }
-            default -> {            // bucket == 4
+            default -> {
                 eventType = "ZONE_CLOSURE";
                 closureAlert = true;
             }
@@ -121,10 +135,10 @@ public class TriggerMonitoringService {
 
         return WeatherEvent.builder()
                 .city(city)
-                .zone(city)
+                .zone(city) // for now same as city; later you can replace with actual zone
                 .eventType(eventType)
-                .rainfallMm(rainfallMm != null ? java.math.BigDecimal.valueOf(rainfallMm) : null)
-                .temperature(temperature != null ? java.math.BigDecimal.valueOf(temperature) : null)
+                .rainfallMm(rainfallMm)
+                .temperature(temperature)
                 .aqi(aqi)
                 .floodAlert(floodAlert)
                 .closureAlert(closureAlert)
