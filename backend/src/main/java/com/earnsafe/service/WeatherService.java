@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Weather data service.
@@ -20,9 +20,6 @@ import java.util.Random;
 @Service
 public class WeatherService {
 
-    private static final Random RNG = new Random();
-
-    // Base severity per city (0–10).  Source: historical disruption frequency index.
     private static final Map<String, Double> CITY_BASE_SEVERITY = Map.of(
             "mumbai",    8.0,
             "delhi",     7.0,
@@ -44,7 +41,7 @@ public class WeatherService {
         if (city == null || city.isBlank()) return 5.0;
         double base = CITY_BASE_SEVERITY.getOrDefault(city.toLowerCase().trim(), 5.0);
         // Add ±1.5 random variance to simulate live data
-        double variance = (RNG.nextDouble() * 3.0) - 1.5;
+        double variance = (ThreadLocalRandom.current().nextDouble() * 3.0) - 1.5;
         double severity = Math.max(0.0, Math.min(10.0, base + variance));
         double result = Math.round(severity * 10.0) / 10.0;
         log.debug("[WeatherService] city={} baseSeverity={} result={}", city, base, result);

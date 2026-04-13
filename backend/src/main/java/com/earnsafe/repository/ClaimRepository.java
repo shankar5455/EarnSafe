@@ -30,7 +30,7 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     long countByFraudFlagTrue();
 
     /** Sum of all payouts for PAID claims. */
-    @Query("SELECT COALESCE(SUM(c.payoutAmount), 0) FROM Claim c WHERE c.claimStatus = 'PAID'")
+    @Query("SELECT COALESCE(SUM(c.payoutAmount), 0) FROM Claim c WHERE c.claimStatus = com.earnsafe.entity.Claim.ClaimStatus.PAID")
     BigDecimal sumPayoutAmountForPaidClaims();
 
     @Query("SELECT c.triggerType, COUNT(c) FROM Claim c GROUP BY c.triggerType")
