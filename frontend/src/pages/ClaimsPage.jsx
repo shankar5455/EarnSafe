@@ -94,6 +94,7 @@ export default function ClaimsPage() {
                     <th className="px-6 py-4">Date</th>
                     <th className="px-6 py-4">Lost Income</th>
                     <th className="px-6 py-4">Payout</th>
+                    <th className="px-6 py-4">Fraud Score</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4">Actions</th>
                   </tr>
@@ -120,6 +121,21 @@ export default function ClaimsPage() {
                       <td className="px-6 py-4 font-medium text-gray-700">₹{claim.estimatedLostIncome?.toFixed(0)}</td>
                       <td className="px-6 py-4 font-medium text-green-600">₹{claim.payoutAmount?.toFixed(0)}</td>
                       <td className="px-6 py-4">
+                        {claim.fraudScore !== undefined && claim.fraudScore !== null ? (
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1">
+                              <div className="w-12 bg-gray-100 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full ${claim.fraudScore >= 0.5 ? 'bg-red-500' : claim.fraudScore >= 0.3 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                                  style={{ width: `${claim.fraudScore * 100}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-600">{(claim.fraudScore * 100).toFixed(0)}%</span>
+                            </div>
+                          </div>
+                        ) : <span className="text-xs text-gray-400">—</span>}
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <StatusBadge status={claim.claimStatus} />
                           {claim.fraudFlag && (
@@ -130,7 +146,7 @@ export default function ClaimsPage() {
                       <td className="px-6 py-4">
                         {adminMode && (
                           <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                            {claim.claimStatus === 'UNDER_VALIDATION' && (
+                            {(claim.claimStatus === 'UNDER_VALIDATION' || claim.claimStatus === 'UNDER_REVIEW') && (
                               <>
                                 <button
                                   onClick={() => handleAction('approve', claim.id)}
@@ -211,6 +227,23 @@ export default function ClaimsPage() {
                 {selectedClaim.fraudFlag && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                     <p className="text-red-700 text-xs font-medium">⚠️ Fraud Flag: {selectedClaim.fraudReason}</p>
+                    {selectedClaim.fraudScore !== undefined && selectedClaim.fraudScore !== null && (
+                      <p className="text-red-600 text-xs mt-1">
+                        Fraud Score: <span className="font-bold">{(selectedClaim.fraudScore * 100).toFixed(0)}%</span>
+                        {' '}— {selectedClaim.fraudScore >= 0.5 ? 'Under Review' : 'Low Risk'}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {selectedClaim.claimStatus === 'UNDER_REVIEW' && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-orange-700 text-xs font-medium">🔍 Under Review: This claim is being manually reviewed by our fraud detection team.</p>
+                  </div>
+                )}
+                {selectedClaim.claimStatus === 'PAID' && selectedClaim.transactionId && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-green-700 text-sm font-bold">✅ ₹{selectedClaim.payoutAmount?.toFixed(0)} credited successfully</p>
+                    <p className="text-green-600 text-xs mt-1">Transaction ID: <span className="font-mono font-semibold">{selectedClaim.transactionId}</span></p>
                   </div>
                 )}
               </div>

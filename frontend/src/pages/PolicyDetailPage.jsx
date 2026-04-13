@@ -103,7 +103,12 @@ export default function PolicyDetailPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Risk Score</span>
-                <StatusBadge status={policy.riskScore} />
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={policy.riskScore} />
+                  {policy.riskScoreNumeric !== undefined && policy.riskScoreNumeric !== null && (
+                    <span className="text-xs text-gray-500">({(policy.riskScoreNumeric * 100).toFixed(0)}%)</span>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Zone Covered</span>

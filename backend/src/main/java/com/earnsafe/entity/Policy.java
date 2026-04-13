@@ -47,6 +47,9 @@ public class Policy {
 
     private String riskScore;
 
+    /** Numeric risk score in [0.0, 1.0] computed by RiskService */
+    private Double riskScoreNumeric;
+
     private LocalDate startDate;
     private LocalDate endDate;
 

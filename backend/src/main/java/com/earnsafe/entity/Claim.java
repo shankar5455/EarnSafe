@@ -55,6 +55,12 @@ public class Claim {
 
     private String fraudReason;
 
+    /** Numeric fraud score in [0.0, 1.0] from FraudService */
+    private Double fraudScore;
+
+    /** UUID-based transaction ID set by PayoutService on payout */
+    private String transactionId;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal payoutAmount;
 
@@ -75,6 +81,6 @@ public class Claim {
     }
 
     public enum ClaimStatus {
-        TRIGGERED, UNDER_VALIDATION, APPROVED, REJECTED, PAID
+        TRIGGERED, UNDER_VALIDATION, UNDER_REVIEW, APPROVED, REJECTED, PAID
     }
 }
