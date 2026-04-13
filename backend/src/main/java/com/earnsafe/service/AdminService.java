@@ -37,7 +37,10 @@ public class AdminService {
         long rejectedClaims = claimRepository.countByClaimStatus(Claim.ClaimStatus.REJECTED);
         long paidClaims = claimRepository.countByClaimStatus(Claim.ClaimStatus.PAID);
         long pendingClaims = claimRepository.countByClaimStatus(Claim.ClaimStatus.TRIGGERED)
+                + claimRepository.countByClaimStatus(Claim.ClaimStatus.UNDER_REVIEW)
                 + claimRepository.countByClaimStatus(Claim.ClaimStatus.UNDER_VALIDATION);
+        long fraudDetectedCount = claimRepository.countByFraudFlagTrue();
+        java.math.BigDecimal totalPayouts = claimRepository.sumPayoutAmountForPaidClaims();
 
         // Trigger counts
         Map<String, Long> triggerCounts = new LinkedHashMap<>();
@@ -68,6 +71,8 @@ public class AdminService {
                 .rejectedClaims(rejectedClaims)
                 .paidClaims(paidClaims)
                 .pendingClaims(pendingClaims)
+                .fraudDetectedCount(fraudDetectedCount)
+                .totalPayouts(totalPayouts)
                 .triggerCountByType(triggerCounts)
                 .claimsByStatus(claimsByStatus)
                 .topRiskyZones(topZones)

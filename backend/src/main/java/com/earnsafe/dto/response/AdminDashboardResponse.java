@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,10 @@ public class AdminDashboardResponse {
     private long rejectedClaims;
     private long paidClaims;
     private long pendingClaims;
+    /** Number of claims flagged as fraudulent */
+    private long fraudDetectedCount;
+    /** Total amount paid out across all PAID claims */
+    private BigDecimal totalPayouts;
     private Map<String, Long> triggerCountByType;
     private Map<String, Long> claimsByStatus;
     private List<RiskZoneInfo> topRiskyZones;

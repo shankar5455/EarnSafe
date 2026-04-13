@@ -20,6 +20,7 @@ public class PolicyService {
 
     private final PolicyRepository policyRepository;
     private final PremiumService premiumService;
+    private final RiskService riskService;
 
     public PolicyResponse createPolicy(User user, PolicyCreateRequest request) {
         // Deactivate any existing active policy
@@ -28,8 +29,9 @@ public class PolicyService {
             policyRepository.save(existing);
         });
 
-        // Calculate premium
+        // Calculate premium (includes AI risk adjustment)
         PremiumCalculationResponse premium = premiumService.calculate(user);
+        double numericRiskScore = riskService.calculateRiskScoreForUser(user);
 
         Policy policy = Policy.builder()
                 .policyNumber("POL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
@@ -42,6 +44,7 @@ public class PolicyService {
                 .zoneCovered(user.getZone() != null ? user.getZone() : user.getCity())
                 .status(Policy.PolicyStatus.ACTIVE)
                 .riskScore(premium.getRiskScore())
+                .riskScoreNumeric(numericRiskScore)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusWeeks(1))
                 .build();
@@ -101,6 +104,7 @@ public class PolicyService {
                 .zoneCovered(policy.getZoneCovered())
                 .status(policy.getStatus().name())
                 .riskScore(policy.getRiskScore())
+                .riskScoreNumeric(policy.getRiskScoreNumeric())
                 .startDate(policy.getStartDate())
                 .endDate(policy.getEndDate())
                 .createdAt(policy.getCreatedAt())

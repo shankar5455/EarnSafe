@@ -70,6 +70,11 @@ export default function PoliciesPage() {
                         <span className="font-bold text-gray-800">{policy.policyNumber}</span>
                         <StatusBadge status={policy.status} />
                         <StatusBadge status={policy.riskScore} />
+                        {policy.riskScoreNumeric !== undefined && policy.riskScoreNumeric !== null && (
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                            AI Risk: {(policy.riskScoreNumeric * 100).toFixed(0)}%
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-500 mt-1">{policy.planName}</p>
                       <p className="text-xs text-gray-400 mt-1">

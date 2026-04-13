@@ -16,6 +16,8 @@ public class PremiumCalculationResponse {
     private BigDecimal basePremium;
     private BigDecimal finalWeeklyPremium;
     private String riskScore;
+    /** Numeric risk score in [0.0, 1.0] – complements the categorical riskScore */
+    private Double riskScoreNumeric;
     private List<BreakdownItem> breakdown;
     private String explanation;
 

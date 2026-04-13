@@ -19,9 +19,12 @@ import java.util.Optional;
 public class PremiumService {
 
     private static final BigDecimal BASE_PREMIUM = new BigDecimal("39");
+    /** Multiplier for the AI risk-score component added on top of the base premium */
+    private static final BigDecimal RISK_MULTIPLIER = new BigDecimal("30");
 
     private final RiskZoneRepository riskZoneRepository;
     private final UserRepository userRepository;
+    private final RiskService riskService;
 
     public PremiumCalculationResponse calculate(User user) {
         List<PremiumCalculationResponse.BreakdownItem> breakdown = new ArrayList<>();
@@ -123,10 +126,22 @@ public class PremiumService {
             explanation.append("Your weekly premium reflects your zone risk and work profile.");
         }
 
+        // AI-derived numeric risk score
+        double numericRiskScore = riskService.calculateRiskScoreForUser(user);
+
+        // Add AI risk component to premium: base + (riskScore * multiplier)
+        BigDecimal aiRiskAdj = RISK_MULTIPLIER.multiply(BigDecimal.valueOf(numericRiskScore)).setScale(2, RoundingMode.HALF_UP);
+        if (aiRiskAdj.compareTo(BigDecimal.ZERO) > 0) {
+            total = total.add(aiRiskAdj);
+            breakdown.add(new PremiumCalculationResponse.BreakdownItem("AI Risk Adjustment", aiRiskAdj));
+            explanation.append(" AI risk score: ").append(numericRiskScore).append(".");
+        }
+
         return PremiumCalculationResponse.builder()
                 .basePremium(BASE_PREMIUM)
                 .finalWeeklyPremium(total.setScale(2, RoundingMode.HALF_UP))
                 .riskScore(riskScore)
+                .riskScoreNumeric(numericRiskScore)
                 .breakdown(breakdown)
                 .explanation(explanation.toString().trim())
                 .build();
