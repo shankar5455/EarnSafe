@@ -410,10 +410,11 @@ Once both servers are running, verify the following end-to-end flow:
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | GET | `/api/triggers/live` | List recent weather/disruption events | Yes |
-| POST | `/api/triggers/mock-event` | Create a test trigger event | Yes (Admin) |
-| POST | `/api/triggers/evaluate-all` | Evaluate all active policies against an event | Yes (Admin) |
+| POST | `/api/triggers/mock-event` | Create a test trigger event | Yes (Authenticated; typically Admin via UI) |
+| POST | `/api/triggers/evaluate-all` | Evaluate all active policies against an event | Yes (Authenticated; typically Admin via UI) |
+| POST | `/api/triggers/simulate-feed` | Simulate rotating trigger feed across active-policy cities | Yes (Authenticated; typically Admin via UI) |
 
-> `mock-event` and `evaluate-all` are **test utilities** for demo/verification purposes. In production, triggers should be driven by live external data feeds.
+> `mock-event`, `evaluate-all`, and `simulate-feed` are **test/demo utilities**. The backend also runs a scheduler (`TriggerMonitoringService`) every `app.trigger.interval` to simulate and evaluate trigger events automatically.
 
 ### Admin
 
@@ -448,13 +449,20 @@ Once both servers are running, verify the following end-to-end flow:
                                    →  Backend runs risk engine
                                    →  Returns finalWeeklyPremium + breakdown
 4.  Worker creates policy  →  POST /policies/create
-                           →  Policy saved in MySQL
-5.  Admin fires trigger    →  POST /triggers/evaluate-all
-                           →  Backend finds active policies in affected zone
-                           →  Claims auto-generated and saved in MySQL
-6.  Admin reviews claim    →  PUT /claims/{id}/approve
-                           →  Claim status updated in MySQL
-7.  Worker views dashboard →  GET /policies/my + GET /claims/my
+                           →  Existing active policy is set to INACTIVE (single active policy per user)
+                           →  New policy saved as ACTIVE for 1 week (premium + coverage defaults)
+5.  Trigger event arrives  →  (manual) /triggers/evaluate-all OR (auto) scheduler run
+                           →  Threshold check: rain/flood/heat/pollution/zone-closure
+                           →  Active policies in same city are evaluated
+                           →  Duplicate claim prevention by user + disruptionDate + triggerType
+                           →  Claim auto-created with estimated loss and fraud score
+6.  Claim decision path    →  Non-fraud: AUTO_APPROVED + payoutAmount set
+                           →  Fraud-flagged: UNDER_REVIEW until admin action
+7.  Admin adjudicates      →  PUT /claims/{id}/approve or /reject
+                           →  Status persisted in MySQL
+8.  Admin pays claim       →  PUT /claims/{id}/mark-paid
+                           →  PayoutService sets status=PAID + transactionId (TXN-*)
+9.  Worker views dashboard →  GET /policies/my + GET /claims/my
                            →  Live data returned from MySQL
                            →  Frontend renders current state
 ```
