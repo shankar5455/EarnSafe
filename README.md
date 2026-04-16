@@ -1,52 +1,105 @@
-# EarnSafe (AI-Powered Insurance for Gig Workers)
+# EarnSafe — AI-Powered Parametric Insurance for Gig Workers
 
-EarnSafe is a production-focused, full-stack insurance platform for delivery workers that uses ML-based risk scoring, automated parametric claims, fraud detection, and instant payouts.
+## 1) Project Overview
+EarnSafe is a startup-grade parametric micro-insurance platform built for delivery workers. It prices weekly policies with AI risk scoring, auto-detects disruption triggers from live weather, auto-creates claims, runs fraud screening, and executes payout with reliability fallback for demo and production resilience.
 
-## 1) Problem Statement
-Gig workers lose daily income during rain, floods, heatwaves, and city disruptions. Traditional insurance is claim-heavy and slow. EarnSafe automates risk pricing, trigger-based claims, and payout execution to protect worker earnings.
+## 2) Problem Statement
+Gig workers lose daily income during heavy rain, flood alerts, heatwaves, pollution spikes, and closure conditions. Traditional claims are manual, slow, and subjective. EarnSafe turns this into an automated **income-loss protection** product using parametric triggers and AI-assisted underwriting + fraud control.
 
-## 2) Features
-- AI risk prediction (`/predict-risk`) for premium and risk-level generation
-- AI fraud detection (`/detect-fraud`) using anomaly detection
-- OpenWeatherMap live ingestion (temperature, rainfall, AQI proxy, severe condition mapping)
-- Parametric automation: severe weather + inactive worker → auto-claim → auto-approve → auto-payout
-- Stripe test-mode payout integration
-- Worker dashboard: premium, risk score, policy, protected earnings
-- Admin dashboard: fraud alerts, claims analytics, risk heatmap
+## 3) Architecture Diagram (Text Explanation)
+`React Frontend (Worker/Admin Dashboards)`  
+→ `Spring Boot API (Auth, Policy, Premium, Trigger, Claim, Payout orchestration)`  
+→ `MySQL (Core + AI audit data)`  
+→ `FastAPI AI Service (/predict-risk, /detect-fraud)`  
+→ External APIs: `OpenWeatherMap` (event ingestion), `Stripe` (payout transfer)
 
-## 3) Architecture (Text Diagram)
-`React Frontend` → `Spring Boot API` → (`MySQL` + `Python FastAPI AI Service`) → (`OpenWeatherMap API`, `Stripe Test API`)
+Core backend layers:
+- Controllers: API contracts
+- Services: pricing, fraud, trigger automation, payout reliability, AI integration
+- Repositories: JPA persistence and analytics queries
 
-Backend follows layered architecture:
-- Controllers
-- Services (business automation, AI integration, weather ingestion, payout orchestration)
-- Repositories (JPA persistence)
+## 4) AI Components
+- **Risk AI** (`/predict-risk`): generates risk score + risk level + premium signal
+- **Fraud AI** (`/detect-fraud`): produces fraud score + reason
+- **Rule-enhanced fraud controls** in backend:
+  - location mismatch threshold checks
+  - high claim velocity in 24h / 7d
+  - unrealistic delivery activity pattern checks
 
-## 4) Tech Stack
-- Spring Boot 3 (Java 17)
-- React + Vite
-- Python FastAPI + scikit-learn
-- MySQL
-- OpenWeatherMap API
-- Stripe (sandbox/test mode)
+## 5) Workflow (End-to-End)
+1. Worker registers and creates weekly policy  
+2. Premium engine invokes AI risk model and stores risk history  
+3. Scheduler/admin trigger scan ingests city weather and evaluates severe parametric events  
+4. Matching workers with inactivity are auto-claimed  
+5. Fraud evaluation returns score, reason, flag; values are stored and exposed in APIs/UI  
+6. Approved claims attempt Stripe payout  
+7. If Stripe fails, fallback marks claim as `SIMULATED_SUCCESS`, stores failure reason, and tracks retry status  
+8. Scheduled retry reconciles pending fallback payouts when Stripe becomes available
 
-## 5) How It Works (Flow)
-1. User registers and activates policy
-2. Backend requests AI risk prediction for premium
-3. Scheduler/admin scan fetches live weather from OpenWeatherMap
-4. If weather is severe and worker inactivity is detected, claim triggers automatically
-5. Fraud model scores the claim
-6. Non-fraud claim is auto-approved and paid through Stripe transfer
+## 6) Features
+- Weekly policy pricing model
+- Income-loss focused payout computation (lost hours/income)
+- AI risk score + risk level in policy/premium views
+- AI + rule-based fraud scoring with reason traceability
+- Fully automated parametric claim lifecycle
+- Reliable payout flow with fallback and retry status tracking
+- Worker + Admin dashboards with analytics visibility
 
-## 6) Database Tables
-Core + analytics tables:
-- `users`, `policies`, `claims`, `risk_zones`, `delivery_activities`, `weather_events`
-- `weather_data`
-- `risk_scores`
-- `fraud_scores`
-- `claim_triggers`
+## 7) Fraud Detection Strategy
+- AI model score + backend rule amplification
+- Location validation via worker city vs trigger event distance threshold
+- Claim velocity anomaly checks:
+  - too many claims in last 24h
+  - high claim count in 7-day window
+- Unrealistic activity checks:
+  - high deliveries with very low login hours
+  - zero deliveries with unusually high claimed activity/income signal
+- Output fields:
+  - `fraudScore`
+  - `fraudReason`
+  - `fraudFlag`
 
-## 7) Setup Instructions
+## 8) Parametric Trigger Logic
+Claims are automatically generated only when:
+- Severe weather/event condition is detected (rainfall, flood, heatwave, AQI spike, closure pattern)
+- Worker inactivity condition is met
+- Duplicate claim guard for same worker + event type + date is not violated
+
+This ensures objective trigger-based automation and prevents manual claim bias.
+
+## 9) Payout Flow (with Fallback Reliability)
+- Primary mode: Stripe transfer
+- Reliability controls:
+  - Stripe call wrapped with error handling
+  - On failure: claim is marked paid via `SIMULATED_SUCCESS` mode for continuity
+  - Fallback metadata persisted:
+    - payout status
+    - retry pending flag
+    - retry count
+    - failure reason
+  - Scheduled reconciliation retries pending payouts up to configured max attempts
+
+## 10) Security Improvements
+- Removed hardcoded secrets from source configuration
+- Sensitive values now use environment variables:
+  - `DB_USERNAME`, `DB_PASSWORD`
+  - `JWT_SECRET`
+  - `WEATHER_API_KEY`
+  - `STRIPE_API_KEY`, `STRIPE_DESTINATION_ACCOUNT`
+- Fraud and payout outcomes are auditable in DB for operations and governance.
+
+## 11) Demo-Ready Judge Flow
+1. Register a worker (`/api/auth/register`)
+2. Create policy (`/api/policies/create`)
+3. View AI premium + risk level (`/api/premium/calculate`, dashboard)
+4. Run weather trigger scan (`/api/triggers/scan` or `/api/triggers/scan-all`)
+5. Observe auto-generated claim
+6. Verify fraud score/reason in claim and admin views
+7. Verify payout outcome:
+   - Stripe success (`STRIPE_SUCCESS`) or
+   - fallback simulation (`SIMULATED_SUCCESS`) with retry state
+
+## 12) Setup Instructions
 ### Backend
 ```bash
 cd backend
@@ -56,6 +109,7 @@ export JWT_SECRET=your_256_bit_secret
 export WEATHER_API_KEY=your_openweather_key
 export STRIPE_API_KEY=your_stripe_test_secret
 export STRIPE_DESTINATION_ACCOUNT=acct_test_destination
+export PAYOUT_RETRY_MAX_ATTEMPTS=3
 mvn spring-boot:run
 ```
 
@@ -75,33 +129,27 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-## 8) API Endpoints
-### AI Service
-- `POST /predict-risk`
-- `POST /detect-fraud`
-- `GET /health`
+## 13) Basic Automated Testing
+- Added Spring Boot integration tests:
+  - `AuthServiceSpringBootTest` (registration/auth path)
+  - `PremiumServiceSpringBootTest` (AI premium service path)
 
-### Backend (selected)
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/premium/calculate`
-- `POST /api/policies/create`
-- `GET /api/claims/my`
-- `GET /api/triggers/live`
-- `POST /api/triggers/scan` (admin)
-- `POST /api/triggers/scan-all` (admin)
-- `GET /api/admin/dashboard`
+Run:
+```bash
+cd backend
+mvn test
+```
 
-## 9) Demo Flow (for Judges)
-1. Register worker and buy policy
-2. Open worker dashboard to view AI premium and risk score
-3. From admin trigger monitor, run city scan or all-city scan
-4. Observe auto-generated claim and fraud score
-5. Verify automatic payout with transaction ID
-6. Open admin dashboard for fraud alerts and heatmap analytics
+## 14) Final Verification Checklist
+- Weekly pricing model → **YES**
+- Income loss only payout logic → **YES**
+- AI integration → **YES**
+- Fully automated claims → **YES**
+- Payout reliability fallback + retry → **FIXED**
 
-## 10) Screenshots
-- `docs/screenshots/worker-dashboard.png` *(placeholder)*
-- `docs/screenshots/admin-dashboard.png` *(placeholder)*
-- `docs/screenshots/trigger-monitor.png` *(placeholder)*
-- `docs/screenshots/claims-flow.png` *(placeholder)*
+## 15) Future Enhancements
+- Device fingerprinting and attestation for stronger identity integrity
+- Geo-fencing with precise worker GPS ingestion (consented)
+- Event streaming + dead-letter queue for payout retries at scale
+- Explainable AI dashboard timelines for underwriting and fraud audits
+- Multi-provider payout failover beyond Stripe

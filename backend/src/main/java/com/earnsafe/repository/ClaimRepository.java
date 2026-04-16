@@ -46,4 +46,6 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     @Query("SELECT c.claimStatus, COUNT(c) FROM Claim c GROUP BY c.claimStatus")
     List<Object[]> countByStatus();
+
+    List<Claim> findTop50ByPayoutRetryPendingTrueAndPayoutRetryCountLessThanOrderByUpdatedAtAsc(int maxRetryCount);
 }

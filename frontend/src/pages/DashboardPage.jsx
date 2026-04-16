@@ -43,6 +43,8 @@ export default function DashboardPage() {
   const activePolicy = policies.find((p) => p.status === 'ACTIVE');
   const approvedClaims = claims.filter((c) => c.claimStatus === 'APPROVED' || c.claimStatus === 'PAID');
   const totalPayout = approvedClaims.reduce((sum, c) => sum + (c.payoutAmount || 0), 0);
+  const latestFraudScoredClaim = claims.find((c) => c.fraudScore !== null && c.fraudScore !== undefined);
+  const simulatedFallbackCount = claims.filter((c) => c.payoutStatus === 'SIMULATED_SUCCESS').length;
 
   const claimStatusData = [
     { name: 'Approved', value: claims.filter((c) => c.claimStatus === 'APPROVED').length },
@@ -134,7 +136,7 @@ export default function DashboardPage() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <DashboardCard
             title="Weekly Premium"
             value={premium ? `₹${premium.finalWeeklyPremium}` : activePolicy ? `₹${activePolicy.weeklyPremium}` : 'N/A'}
@@ -162,6 +164,13 @@ export default function DashboardPage() {
             subtitle={premium?.riskScoreNumeric !== undefined ? `Model Score: ${(premium.riskScoreNumeric * 100).toFixed(0)}%` : 'Model-based risk assessment'}
             icon={Zap}
             color={premium?.riskScore === 'HIGH' ? 'red' : premium?.riskScore === 'LOW' ? 'green' : 'orange'}
+          />
+          <DashboardCard
+            title="Fraud Score"
+            value={latestFraudScoredClaim?.fraudScore !== undefined && latestFraudScoredClaim?.fraudScore !== null ? `${(latestFraudScoredClaim.fraudScore * 100).toFixed(0)}%` : 'N/A'}
+            subtitle={`Fallback payouts: ${simulatedFallbackCount}`}
+            icon={AlertTriangle}
+            color={latestFraudScoredClaim?.fraudScore >= 0.65 ? 'red' : 'orange'}
           />
         </div>
 

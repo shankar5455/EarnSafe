@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,16 @@ public class JwtUtil {
 
     @Value("${app.jwt.expiration}")
     private long expiration;
+
+    @PostConstruct
+    private void validateSecret() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT secret is not configured. Set JWT_SECRET environment variable.");
+        }
+        if (secret.length() < 32) {
+            throw new IllegalStateException("JWT secret is too short. Use at least a 32-character secret.");
+        }
+    }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();

@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -65,17 +66,21 @@ public class StripePayoutGateway {
         body.add("destination", destinationAccount);
         body.add("description", "EarnSafe auto payout for claim " + claim.getClaimNumber());
 
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<Map> response = client.postForEntity("https://api.stripe.com/v1/transfers", entity, Map.class);
+        try {
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<Map> response = client.postForEntity("https://api.stripe.com/v1/transfers", entity, Map.class);
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new RuntimeException("Stripe payout failed");
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new RuntimeException("Stripe payout failed with non-success response");
+            }
 
-        Object transferId = response.getBody().get("id");
-        if (transferId == null) {
-            throw new RuntimeException("Stripe payout response missing transfer id");
+            Object transferId = response.getBody().get("id");
+            if (transferId == null) {
+                throw new RuntimeException("Stripe payout response missing transfer id");
+            }
+            return transferId.toString();
+        } catch (RestClientException ex) {
+            throw new RuntimeException("Stripe payout transport error: " + ex.getMessage(), ex);
         }
-        return transferId.toString();
     }
 }

@@ -220,7 +220,12 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4 font-medium">₹{p.weeklyPremium}</td>
                       <td className="px-6 py-4 text-gray-600">₹{p.weeklyCoverageAmount}</td>
                       <td className="px-6 py-4 text-gray-500">{p.zoneCovered}</td>
-                      <td className="px-6 py-4"><StatusBadge status={p.riskScore} /></td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <StatusBadge status={p.riskScore} />
+                          <span className="text-xs text-gray-500">{p.riskScoreNumeric !== undefined && p.riskScoreNumeric !== null ? `${(p.riskScoreNumeric * 100).toFixed(0)}%` : '—'}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4"><StatusBadge status={p.status} /></td>
                       <td className="px-6 py-4 text-gray-500">{p.endDate}</td>
                     </tr>
@@ -248,7 +253,9 @@ export default function AdminDashboardPage() {
                     <th className="px-6 py-4 text-left">Date</th>
                     <th className="px-6 py-4 text-left">Lost Income</th>
                     <th className="px-6 py-4 text-left">Payout</th>
+                    <th className="px-6 py-4 text-left">Payout Mode</th>
                     <th className="px-6 py-4 text-left">Fraud</th>
+                    <th className="px-6 py-4 text-left">Fraud Score</th>
                     <th className="px-6 py-4 text-left">Status</th>
                   </tr>
                 </thead>
@@ -262,12 +269,14 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4 text-gray-500">{c.disruptionDate}</td>
                       <td className="px-6 py-4 font-medium text-red-600">₹{c.estimatedLostIncome?.toFixed(0)}</td>
                       <td className="px-6 py-4 font-medium text-green-600">₹{c.payoutAmount?.toFixed(0)}</td>
+                      <td className="px-6 py-4 text-xs text-gray-600">{c.payoutStatus || 'PENDING'}</td>
                       <td className="px-6 py-4">
                         {c.fraudFlag
                           ? <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">⚠️ Yes</span>
                           : <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ No</span>
                         }
                       </td>
+                      <td className="px-6 py-4 text-gray-600">{c.fraudScore !== null && c.fraudScore !== undefined ? `${(c.fraudScore * 100).toFixed(0)}%` : '—'}</td>
                       <td className="px-6 py-4"><StatusBadge status={c.claimStatus} /></td>
                     </tr>
                   ))}

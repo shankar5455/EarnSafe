@@ -14,12 +14,14 @@ import java.time.LocalDateTime;
 public class TriggerMonitoringService {
 
     private final TriggerService triggerService;
+    private final PayoutService payoutService;
 
     @Transactional
     @Scheduled(fixedDelayString = "${app.trigger.interval:300000}")
     public void runTriggerScan() {
         log.info("=== [AutoTrigger] Starting scheduled OpenWeather scan at {} ===", LocalDateTime.now());
         int created = triggerService.scanAndEvaluateAllCities().size();
-        log.info("=== [AutoTrigger] Scan complete. Auto-created {} claim(s). ===", created);
+        int retried = payoutService.retryPendingPayouts();
+        log.info("=== [AutoTrigger] Scan complete. Auto-created {} claim(s), reconciled {} payout(s). ===", created, retried);
     }
 }

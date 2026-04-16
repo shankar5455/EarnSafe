@@ -91,6 +91,9 @@ public class ClaimService {
                 .fraudReason(fraudResult.reason())
                 .fraudScore(fraudResult.fraudScore())
                 .payoutAmount(fraudResult.fraudFlag() ? BigDecimal.ZERO : estimatedLostIncome)
+                .payoutStatus(Claim.PayoutStatus.PENDING)
+                .payoutRetryPending(false)
+                .payoutRetryCount(0)
                 .build();
 
         claim = claimRepository.save(claim);
@@ -137,6 +140,10 @@ public class ClaimService {
                 .fraudScore(claim.getFraudScore())
                 .transactionId(claim.getTransactionId())
                 .payoutAmount(claim.getPayoutAmount())
+                .payoutStatus(claim.getPayoutStatus() != null ? claim.getPayoutStatus().name() : null)
+                .payoutRetryPending(claim.getPayoutRetryPending())
+                .payoutRetryCount(claim.getPayoutRetryCount())
+                .payoutFailureReason(claim.getPayoutFailureReason())
                 .createdAt(claim.getCreatedAt())
                 .updatedAt(claim.getUpdatedAt())
                 .build();

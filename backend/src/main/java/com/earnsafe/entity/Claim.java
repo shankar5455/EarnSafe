@@ -64,6 +64,24 @@ public class Claim {
     @Column(precision = 10, scale = 2)
     private BigDecimal payoutAmount;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(nullable = false)
+    private PayoutStatus payoutStatus = PayoutStatus.PENDING;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean payoutRetryPending = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer payoutRetryCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String payoutFailureReason;
+
+    private LocalDateTime payoutLastAttemptAt;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -73,6 +91,9 @@ public class Claim {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (payoutStatus == null) payoutStatus = PayoutStatus.PENDING;
+        if (payoutRetryPending == null) payoutRetryPending = false;
+        if (payoutRetryCount == null) payoutRetryCount = 0;
     }
 
     @PreUpdate
@@ -82,5 +103,9 @@ public class Claim {
 
     public enum ClaimStatus {
         TRIGGERED, UNDER_VALIDATION, UNDER_REVIEW, APPROVED, REJECTED, PAID
+    }
+
+    public enum PayoutStatus {
+        PENDING, STRIPE_SUCCESS, SIMULATED_SUCCESS
     }
 }

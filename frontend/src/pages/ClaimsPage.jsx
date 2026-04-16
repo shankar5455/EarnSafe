@@ -59,6 +59,7 @@ export default function ClaimsPage() {
                     <th className="px-6 py-4">Zone</th>
                     <th className="px-6 py-4">Date</th>
                     <th className="px-6 py-4">Payout</th>
+                    <th className="px-6 py-4">Payout Mode</th>
                     <th className="px-6 py-4">Fraud Score</th>
                     <th className="px-6 py-4">Status</th>
                   </tr>
@@ -72,6 +73,17 @@ export default function ClaimsPage() {
                       <td className="px-6 py-4 text-gray-500">{claim.zone}</td>
                       <td className="px-6 py-4 text-gray-500">{claim.disruptionDate}</td>
                       <td className="px-6 py-4 font-medium text-green-600">₹{claim.payoutAmount?.toFixed(0)}</td>
+                      <td className="px-6 py-4">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          claim.payoutStatus === 'SIMULATED_SUCCESS'
+                            ? 'bg-amber-100 text-amber-700'
+                            : claim.payoutStatus === 'STRIPE_SUCCESS'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {claim.payoutStatus || 'PENDING'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-gray-500">{claim.fraudScore !== null && claim.fraudScore !== undefined ? `${(claim.fraudScore * 100).toFixed(0)}%` : '—'}</td>
                       <td className="px-6 py-4"><StatusBadge status={claim.claimStatus} /></td>
                     </tr>
@@ -90,7 +102,10 @@ export default function ClaimsPage() {
                 <p><span className="text-gray-500">Worker:</span> {selectedClaim.userFullName}</p>
                 <p><span className="text-gray-500">Trigger:</span> {selectedClaim.triggerType}</p>
                 <p><span className="text-gray-500">Payout:</span> ₹{selectedClaim.payoutAmount?.toFixed(0)}</p>
+                <p><span className="text-gray-500">Payout mode:</span> {selectedClaim.payoutStatus || 'PENDING'}</p>
                 <p><span className="text-gray-500">Transaction:</span> {selectedClaim.transactionId || 'Pending'}</p>
+                <p><span className="text-gray-500">Retry pending:</span> {selectedClaim.payoutRetryPending ? `Yes (${selectedClaim.payoutRetryCount || 0})` : 'No'}</p>
+                <p><span className="text-gray-500">Fraud score:</span> {selectedClaim.fraudScore !== null && selectedClaim.fraudScore !== undefined ? `${(selectedClaim.fraudScore * 100).toFixed(0)}%` : '—'}</p>
                 <p><span className="text-gray-500">Fraud reason:</span> {selectedClaim.fraudReason || 'None'}</p>
               </div>
               <button onClick={() => setSelectedClaim(null)} className="w-full mt-6 bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200">Close</button>
