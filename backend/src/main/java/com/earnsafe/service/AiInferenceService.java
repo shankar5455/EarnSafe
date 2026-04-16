@@ -1,8 +1,6 @@
 package com.earnsafe.service;
 
-import com.earnsafe.dto.response.PremiumCalculationResponse;
 import com.earnsafe.entity.User;
-import com.earnsafe.entity.WeatherEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -13,11 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -32,129 +26,60 @@ public class AiInferenceService {
 
     private final RestTemplateBuilder restTemplateBuilder;
 
-    public double predictRiskScore(User user, double weatherSeverity, int recentClaims, double locationRisk) {
-        Map<String, Object> payload = userFeatures(user);
-        payload.put("weatherSeverity", weatherSeverity);
-        payload.put("recentClaims90d", recentClaims);
-        payload.put("locationRisk", locationRisk);
-
-        Map<String, Object> response = post("/predict/risk", payload);
-        Object scoreObj = response.get("riskScore");
-        if (scoreObj == null) scoreObj = response.get("score");
-        if (!(scoreObj instanceof Number number)) {
-            throw new RuntimeException("AI service did not return riskScore");
-        }
-        return clamp01(number.doubleValue());
-    }
-
-    public double predictRiskScore(double weatherSeverity, int recentClaims, double locationRisk) {
+    public RiskPrediction predictRisk(User user, double weatherSeverity, int pastClaims, double locationRisk, double workerActivity) {
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("weatherSeverity", weatherSeverity);
-        payload.put("recentClaims90d", recentClaims);
         payload.put("locationRisk", locationRisk);
-
-        Map<String, Object> response = post("/predict/risk", payload);
-        Object scoreObj = response.get("riskScore");
-        if (scoreObj == null) scoreObj = response.get("score");
-        if (!(scoreObj instanceof Number number)) {
-            throw new RuntimeException("AI service did not return riskScore");
-        }
-        return clamp01(number.doubleValue());
-    }
-
-    public FraudService.FraudResult predictFraud(User user, WeatherEvent event, int claimsInLast24h, boolean duplicateClaim) {
-        Map<String, Object> payload = userFeatures(user);
-        payload.put("eventType", event.getEventType());
-        payload.put("eventCity", event.getCity());
-        payload.put("eventZone", event.getZone());
-        payload.put("eventTimestamp", event.getEventTimestamp() != null ? event.getEventTimestamp().toString() : null);
-        payload.put("claimsInLast24h", claimsInLast24h);
-        payload.put("duplicateClaim", duplicateClaim);
-        payload.put("rainfallMm", event.getRainfallMm());
-        payload.put("temperature", event.getTemperature());
-        payload.put("aqi", event.getAqi());
-        payload.put("floodAlert", event.getFloodAlert());
-        payload.put("closureAlert", event.getClosureAlert());
-
-        Map<String, Object> response = post("/predict/fraud", payload);
-        double fraudScore = toDouble(response.get("fraudScore"), 0.0);
-        boolean fraudFlag = toBoolean(response.get("fraudFlag"), fraudScore >= 0.5);
-        String reason = response.get("reason") != null ? response.get("reason").toString() : null;
-        return new FraudService.FraudResult(clamp01(fraudScore), fraudFlag, reason);
-    }
-
-    public BigDecimal predictImpactFactor(User user, WeatherEvent event) {
-        Map<String, Object> payload = userFeatures(user);
-        payload.put("eventType", event.getEventType());
-        payload.put("eventCity", event.getCity());
-        payload.put("eventZone", event.getZone());
-        payload.put("rainfallMm", event.getRainfallMm());
-        payload.put("temperature", event.getTemperature());
-        payload.put("aqi", event.getAqi());
-        payload.put("floodAlert", event.getFloodAlert());
-        payload.put("closureAlert", event.getClosureAlert());
-
-        Map<String, Object> response = post("/predict/impact", payload);
-        double impact = toDouble(response.get("impactFactor"), 0.0);
-        return BigDecimal.valueOf(Math.max(0.0, impact)).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    public PremiumCalculationResponse predictPremium(User user) {
-        Map<String, Object> payload = userFeatures(user);
-        payload.put("today", LocalDate.now().toString());
-        payload.put("timestamp", LocalDateTime.now().toString());
-
-        Map<String, Object> response = post("/predict/premium", payload);
-        BigDecimal basePremium = toBigDecimal(response.get("basePremium"), new BigDecimal("39"));
-        BigDecimal finalPremium = toBigDecimal(response.get("finalWeeklyPremium"), basePremium);
-        String riskScore = response.get("riskScore") != null ? response.get("riskScore").toString() : "MEDIUM";
-        double riskNumeric = clamp01(toDouble(response.get("riskScoreNumeric"), 0.5));
-        String explanation = response.get("explanation") != null
-                ? response.get("explanation").toString()
-                : "Your premium was generated by the AI model from your profile and risk context.";
-
-        List<PremiumCalculationResponse.BreakdownItem> breakdown = new ArrayList<>();
-        Object breakdownObj = response.get("breakdown");
-        if (breakdownObj instanceof List<?> items) {
-            for (Object item : items) {
-                if (item instanceof Map<?, ?> map) {
-                    Object factorObj = map.get("factor");
-                    Object amountObj = map.get("amount");
-                    if (factorObj != null && amountObj != null) {
-                        breakdown.add(new PremiumCalculationResponse.BreakdownItem(
-                                factorObj.toString(),
-                                toBigDecimal(amountObj, BigDecimal.ZERO)
-                        ));
-                    }
-                }
-            }
-        }
-        if (breakdown.isEmpty()) {
-            breakdown.add(new PremiumCalculationResponse.BreakdownItem("AI Model Premium", finalPremium));
-        }
-
-        return PremiumCalculationResponse.builder()
-                .basePremium(basePremium.setScale(2, RoundingMode.HALF_UP))
-                .finalWeeklyPremium(finalPremium.setScale(2, RoundingMode.HALF_UP))
-                .riskScore(riskScore)
-                .riskScoreNumeric(riskNumeric)
-                .breakdown(breakdown)
-                .explanation(explanation)
-                .build();
-    }
-
-    private Map<String, Object> userFeatures(User user) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("userId", user.getId());
+        payload.put("weatherSeverity", weatherSeverity);
+        payload.put("pastClaims", pastClaims);
+        payload.put("workerActivity", workerActivity);
         payload.put("city", user.getCity());
         payload.put("zone", user.getZone());
-        payload.put("deliveryPlatform", user.getDeliveryPlatform());
-        payload.put("deliveryCategory", user.getDeliveryCategory());
-        payload.put("preferredShift", user.getPreferredShift());
-        payload.put("vehicleType", user.getVehicleType());
-        payload.put("averageDailyEarnings", user.getAverageDailyEarnings());
-        payload.put("averageWorkingHours", user.getAverageWorkingHours());
-        return payload;
+
+        Map<String, Object> response = post("/predict-risk", payload);
+
+        double riskScore = clamp(toDouble(response.get("riskScore"), 50.0), 0.0, 100.0);
+        BigDecimal premium = BigDecimal.valueOf(toDouble(response.get("premium"), 79.0)).setScale(2, RoundingMode.HALF_UP);
+        String riskLevel = response.get("riskLevel") != null ? response.get("riskLevel").toString() : toRiskLevel(riskScore);
+
+        return new RiskPrediction(riskScore, premium, riskLevel);
+    }
+
+    public FraudService.FraudResult predictFraud(
+            User user,
+            double weatherSeverity,
+            int claimFrequency,
+            int pastClaims,
+            double workerActivity,
+            double gpsDistanceKm,
+            boolean inactivityMismatch,
+            double suspiciousVelocity
+    ) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("locationRisk", inferLocationRisk(user));
+        payload.put("weatherSeverity", weatherSeverity);
+        payload.put("claimFrequency", claimFrequency);
+        payload.put("pastClaims", pastClaims);
+        payload.put("workerActivity", workerActivity);
+        payload.put("gpsDistanceKm", gpsDistanceKm);
+        payload.put("inactivityMismatch", inactivityMismatch ? 1 : 0);
+        payload.put("suspiciousVelocity", suspiciousVelocity);
+        payload.put("city", user.getCity());
+        payload.put("zone", user.getZone());
+
+        Map<String, Object> response = post("/detect-fraud", payload);
+        double fraudScore = clamp(toDouble(response.get("fraudScore"), 0.0), 0.0, 1.0);
+        boolean fraudFlag = toBoolean(response.get("fraudFlag"), fraudScore >= 0.55);
+        String reason = response.get("reason") != null ? response.get("reason").toString() : "Model-evaluated fraud score";
+
+        return new FraudService.FraudResult(fraudScore, fraudFlag, reason);
+    }
+
+    private double inferLocationRisk(User user) {
+        if (user.getZone() == null) return 5.0;
+        String zone = user.getZone().toLowerCase();
+        if (zone.contains("industrial") || zone.contains("coastal") || zone.contains("old city")) return 8.0;
+        if (zone.contains("central") || zone.contains("market")) return 6.0;
+        return 4.5;
     }
 
     @SuppressWarnings("unchecked")
@@ -163,7 +88,11 @@ public class AiInferenceService {
                 .setConnectTimeout(Duration.ofMillis(timeoutMs))
                 .setReadTimeout(Duration.ofMillis(timeoutMs))
                 .build();
-        String normalizedBase = aiBaseUrl.endsWith("/") ? aiBaseUrl.substring(0, aiBaseUrl.length() - 1) : aiBaseUrl;
+
+        String normalizedBase = aiBaseUrl.endsWith("/")
+                ? aiBaseUrl.substring(0, aiBaseUrl.length() - 1)
+                : aiBaseUrl;
+
         ResponseEntity<Map> response = client.postForEntity(normalizedBase + path, payload, Map.class);
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("AI service call failed for " + path);
@@ -171,16 +100,11 @@ public class AiInferenceService {
         return response.getBody();
     }
 
-    private double clamp01(double value) {
-        double bounded = Math.max(0.0, Math.min(1.0, value));
-        return Math.round(bounded * 100.0) / 100.0;
-    }
-
     private double toDouble(Object value, double fallback) {
-        if (value instanceof Number number) return number.doubleValue();
-        if (value instanceof String text) {
+        if (value instanceof Number n) return n.doubleValue();
+        if (value instanceof String s) {
             try {
-                return Double.parseDouble(text);
+                return Double.parseDouble(s);
             } catch (NumberFormatException ignored) {
                 return fallback;
             }
@@ -189,21 +113,20 @@ public class AiInferenceService {
     }
 
     private boolean toBoolean(Object value, boolean fallback) {
-        if (value instanceof Boolean bool) return bool;
-        if (value instanceof String text) return Boolean.parseBoolean(text);
+        if (value instanceof Boolean b) return b;
+        if (value instanceof String s) return Boolean.parseBoolean(s);
         return fallback;
     }
 
-    private BigDecimal toBigDecimal(Object value, BigDecimal fallback) {
-        if (value instanceof BigDecimal bd) return bd;
-        if (value instanceof Number number) return BigDecimal.valueOf(number.doubleValue());
-        if (value instanceof String text) {
-            try {
-                return new BigDecimal(text);
-            } catch (NumberFormatException ignored) {
-                return fallback;
-            }
-        }
-        return fallback;
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
+
+    private String toRiskLevel(double riskScore) {
+        if (riskScore < 33.0) return "LOW";
+        if (riskScore < 66.0) return "MEDIUM";
+        return "HIGH";
+    }
+
+    public record RiskPrediction(double riskScore, BigDecimal premium, String riskLevel) {}
 }

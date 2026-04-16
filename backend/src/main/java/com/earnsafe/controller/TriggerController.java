@@ -1,16 +1,12 @@
 package com.earnsafe.controller;
 
-
+import com.earnsafe.dto.request.WeatherScanRequest;
+import com.earnsafe.dto.response.ClaimResponse;
+import com.earnsafe.entity.WeatherEvent;
 import com.earnsafe.service.TriggerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-
-import com.earnsafe.dto.request.MockEventRequest;
-import com.earnsafe.dto.response.ClaimResponse;
-import com.earnsafe.entity.User;
-import com.earnsafe.entity.WeatherEvent;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,34 +24,23 @@ public class TriggerController {
         return ResponseEntity.ok(triggerService.getLiveEvents());
     }
 
-    @PostMapping("/mock-event")
-    public ResponseEntity<WeatherEvent> createMockEvent(@RequestBody MockEventRequest request) {
-        return ResponseEntity.ok(triggerService.createMockEvent(request));
-    }
-
-    @PostMapping("/evaluate/{userId}")
-    public ResponseEntity<List<ClaimResponse>> evaluateForUser(@PathVariable Long userId,
-                                                               @RequestBody MockEventRequest request) {
-        WeatherEvent event = triggerService.createMockEvent(request);
-        return ResponseEntity.ok(triggerService.evaluateForUser(userId, event));
-    }
-
-    @PostMapping("/evaluate-all")
-    public ResponseEntity<Map<String, Object>> evaluateAll(@RequestBody MockEventRequest request) {
-        List<ClaimResponse> claims = triggerService.processMockEventAndEvaluateAll(request);
+    @PostMapping("/scan")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> scanAndEvaluate(@RequestBody WeatherScanRequest request) {
+        List<ClaimResponse> claims = triggerService.scanAndEvaluateCity(request.getCity());
         return ResponseEntity.ok(Map.of(
+                "city", request.getCity(),
                 "triggeredClaims", claims.size(),
-                "claims", claims,
-                "eventType", request.getEventType(),
-                "city", request.getCity()
+                "claims", claims
         ));
     }
 
-    @PostMapping("/simulate-feed")
-    public ResponseEntity<Map<String, Object>> simulateRealtimeFeed() {
-        List<ClaimResponse> claims = triggerService.simulateRealtimeTriggerFeed();
+    @PostMapping("/scan-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> scanAll() {
+        List<ClaimResponse> claims = triggerService.scanAndEvaluateAllCities();
         return ResponseEntity.ok(Map.of(
-                "message", "Realtime trigger feed simulated for all active-policy cities",
+                "message", "OpenWeather scan completed for all active-policy cities",
                 "triggeredClaims", claims.size(),
                 "claims", claims
         ));

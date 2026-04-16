@@ -1,22 +1,28 @@
 package com.earnsafe.service;
 
 import com.earnsafe.dto.response.AdminDashboardResponse;
+import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.dto.response.PolicyResponse;
-
+import com.earnsafe.dto.response.UserResponse;
 import com.earnsafe.entity.Claim;
+import com.earnsafe.entity.FraudScore;
 import com.earnsafe.entity.Policy;
+import com.earnsafe.entity.RiskScore;
 import com.earnsafe.entity.RiskZone;
 import com.earnsafe.entity.User;
-import com.earnsafe.dto.response.UserResponse;
-import com.earnsafe.dto.response.ClaimResponse;
 import com.earnsafe.repository.ClaimRepository;
+import com.earnsafe.repository.FraudScoreRepository;
 import com.earnsafe.repository.PolicyRepository;
+import com.earnsafe.repository.RiskScoreRepository;
 import com.earnsafe.repository.RiskZoneRepository;
 import com.earnsafe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +33,8 @@ public class AdminService {
     private final PolicyRepository policyRepository;
     private final ClaimRepository claimRepository;
     private final RiskZoneRepository riskZoneRepository;
+    private final RiskScoreRepository riskScoreRepository;
+    private final FraudScoreRepository fraudScoreRepository;
     private final PolicyService policyService;
     private final ClaimService claimService;
 
@@ -41,21 +49,16 @@ public class AdminService {
                 + claimRepository.countByClaimStatus(Claim.ClaimStatus.UNDER_REVIEW)
                 + claimRepository.countByClaimStatus(Claim.ClaimStatus.UNDER_VALIDATION);
         long fraudDetectedCount = claimRepository.countByFraudFlagTrue();
-        java.math.BigDecimal totalPayouts = Optional.ofNullable(
+        BigDecimal totalPayouts = Optional.ofNullable(
                 claimRepository.sumPayoutAmountForPaidClaims(Claim.ClaimStatus.PAID)
-        ).orElse(java.math.BigDecimal.ZERO);
+        ).orElse(BigDecimal.ZERO);
 
-        // Trigger counts
-        Map<String, Long> triggerCounts = new LinkedHashMap<>();
-        claimRepository.countByTriggerType().forEach(row ->
-                triggerCounts.put((String) row[0], (Long) row[1]));
+        LinkedHashMap<String, Long> triggerCounts = new LinkedHashMap<>();
+        claimRepository.countByTriggerType().forEach(row -> triggerCounts.put((String) row[0], (Long) row[1]));
 
-        // Claims by status
-        Map<String, Long> claimsByStatus = new LinkedHashMap<>();
-        claimRepository.countByStatus().forEach(row ->
-                claimsByStatus.put(row[0].toString(), (Long) row[1]));
+        LinkedHashMap<String, Long> claimsByStatus = new LinkedHashMap<>();
+        claimRepository.countByStatus().forEach(row -> claimsByStatus.put(row[0].toString(), (Long) row[1]));
 
-        // Top risky zones
         List<AdminDashboardResponse.RiskZoneInfo> topZones = riskZoneRepository.findByOverallRiskLevel("HIGH")
                 .stream()
                 .limit(5)
@@ -63,6 +66,27 @@ public class AdminService {
                         .city(rz.getCity())
                         .zone(rz.getZone())
                         .riskLevel(rz.getOverallRiskLevel())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<AdminDashboardResponse.FraudAlertInfo> fraudAlerts = fraudScoreRepository.findTop30ByOrderByEvaluatedAtDesc()
+                .stream()
+                .filter(f -> Boolean.TRUE.equals(f.getFraudFlag()))
+                .limit(10)
+                .map(f -> AdminDashboardResponse.FraudAlertInfo.builder()
+                        .userName(f.getUser().getFullName())
+                        .reason(f.getReason())
+                        .score(f.getScore() != null ? f.getScore().doubleValue() : null)
+                        .build())
+                .collect(Collectors.toList());
+
+        List<AdminDashboardResponse.RiskHeatPoint> riskHeatmap = riskScoreRepository.findTop30ByOrderByCalculatedAtDesc()
+                .stream()
+                .limit(30)
+                .map(r -> AdminDashboardResponse.RiskHeatPoint.builder()
+                        .city(r.getCity())
+                        .zone(r.getZone())
+                        .score(r.getScore() != null ? r.getScore().doubleValue() : 0.0)
                         .build())
                 .collect(Collectors.toList());
 
@@ -79,6 +103,8 @@ public class AdminService {
                 .triggerCountByType(triggerCounts)
                 .claimsByStatus(claimsByStatus)
                 .topRiskyZones(topZones)
+                .fraudAlerts(fraudAlerts)
+                .riskHeatmap(riskHeatmap)
                 .build();
     }
 

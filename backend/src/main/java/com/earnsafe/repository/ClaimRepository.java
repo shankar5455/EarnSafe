@@ -20,6 +20,8 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     List<Claim> findByPolicy(Policy policy);
 
+    long countByUser(User user);
+
     long countByClaimStatus(Claim.ClaimStatus status);
 
     boolean existsByUserAndDisruptionDateAndTriggerType(User user, LocalDate date, String triggerType);

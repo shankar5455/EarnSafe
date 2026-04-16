@@ -14,4 +14,5 @@ public interface DeliveryActivityRepository extends JpaRepository<DeliveryActivi
     List<DeliveryActivity> findByUser(User user);
     Optional<DeliveryActivity> findByUserAndDate(User user, LocalDate date);
     List<DeliveryActivity> findByUserOrderByDateDesc(User user);
+    Optional<DeliveryActivity> findTopByUserOrderByDateDesc(User user);
 }

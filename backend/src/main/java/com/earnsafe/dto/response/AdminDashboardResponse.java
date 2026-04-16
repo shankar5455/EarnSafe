@@ -21,13 +21,13 @@ public class AdminDashboardResponse {
     private long rejectedClaims;
     private long paidClaims;
     private long pendingClaims;
-    /** Number of claims flagged as fraudulent */
     private long fraudDetectedCount;
-    /** Total amount paid out across all PAID claims */
     private BigDecimal totalPayouts;
     private Map<String, Long> triggerCountByType;
     private Map<String, Long> claimsByStatus;
     private List<RiskZoneInfo> topRiskyZones;
+    private List<FraudAlertInfo> fraudAlerts;
+    private List<RiskHeatPoint> riskHeatmap;
 
     @Data
     @Builder
@@ -37,5 +37,25 @@ public class AdminDashboardResponse {
         private String city;
         private String zone;
         private String riskLevel;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FraudAlertInfo {
+        private String userName;
+        private String reason;
+        private Double score;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RiskHeatPoint {
+        private String city;
+        private String zone;
+        private Double score;
     }
 }

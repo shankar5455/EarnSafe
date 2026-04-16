@@ -28,17 +28,12 @@ export const userApi = {
 export const claimsApi = {
   getMy: () => api.get('/claims/my'),
   getById: (id) => api.get(`/claims/${id}`),
-  approve: (id) => api.put(`/claims/${id}/approve`),
-  reject: (id) => api.put(`/claims/${id}/reject`),
-  markPaid: (id) => api.put(`/claims/${id}/mark-paid`),
 };
 
 export const triggerApi = {
   getLive: () => api.get('/triggers/live'),
-  createMockEvent: (data) => api.post('/triggers/mock-event', data),
-  evaluateAll: (data) => api.post('/triggers/evaluate-all', data),
-  evaluateForUser: (userId, data) => api.post(`/triggers/evaluate/${userId}`, data),
-  simulateFeed: () => api.post('/triggers/simulate-feed'),
+  scanCity: (city) => api.post('/triggers/scan', { city }),
+  scanAll: () => api.post('/triggers/scan-all'),
 };
 
 export const adminApi = {
