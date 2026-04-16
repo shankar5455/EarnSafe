@@ -40,7 +40,7 @@ export default function ClaimsPage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">{adminMode ? 'All Claims' : 'My Claims'}</h1>
-          <p className="text-gray-500 text-sm mt-1">Automated processing only · no manual approvals</p>
+          <p className="text-gray-500 text-sm mt-1">Automated processing enabled · fraud-screened claims are system-handled</p>
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-6">{error}</div>}

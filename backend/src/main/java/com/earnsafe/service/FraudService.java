@@ -23,6 +23,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FraudService {
 
+    private static final double VELOCITY_MULTIPLIER_PER_CLAIM = 12.0;
+    private static final double DEFAULT_SUSPICIOUS_VELOCITY = 2.0;
+
     private static final Map<String, double[]> CITY_COORDINATES = Map.of(
             "mumbai", new double[]{19.0760, 72.8777},
             "delhi", new double[]{28.6139, 77.2090},
@@ -50,7 +53,9 @@ public class FraudService {
         double weatherSeverity = weatherService.calculateSeverity(event).doubleValue();
         double gpsDistanceKm = inferGpsDistanceKm(user, event);
         boolean inactivityMismatch = !workerInactive && weatherSeverity < 4.0;
-        double suspiciousVelocity = recentClaims.size() > 1 ? recentClaims.size() * 12.0 : 2.0;
+        double suspiciousVelocity = recentClaims.size() > 1
+                ? recentClaims.size() * VELOCITY_MULTIPLIER_PER_CLAIM
+                : DEFAULT_SUSPICIOUS_VELOCITY;
 
         FraudResult result = aiInferenceService.predictFraud(
                 user,

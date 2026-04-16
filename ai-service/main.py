@@ -46,6 +46,10 @@ class FraudResponse(BaseModel):
 risk_model: Optional[RandomForestRegressor] = None
 fraud_model: Optional[IsolationForest] = None
 
+BASE_PREMIUM = 39.0
+RISK_MULTIPLIER = 1.6
+FRAUD_SCORE_THRESHOLD = 0.55
+
 
 def _train_risk_model() -> RandomForestRegressor:
     rng = np.random.RandomState(42)
@@ -133,7 +137,7 @@ async def predict_risk(req: RiskRequest):
     score = float(risk_model.predict(features)[0])  # type: ignore[union-attr]
     score = max(0.0, min(100.0, score))
 
-    premium = 39.0 + (score * 1.6)
+    premium = BASE_PREMIUM + (score * RISK_MULTIPLIER)
     risk_level = "LOW" if score < 33 else "MEDIUM" if score < 66 else "HIGH"
 
     return RiskResponse(risk_score=round(score, 2), premium=round(premium, 2), risk_level=risk_level)
@@ -155,8 +159,8 @@ async def detect_fraud(req: FraudRequest):
     prediction = fraud_model.predict(features)[0]  # type: ignore[union-attr]
     raw_score = fraud_model.decision_function(features)[0]  # type: ignore[union-attr]
 
-    fraud_score = max(0.0, min(1.0, 0.55 - raw_score))
-    fraud_flag = bool(prediction == -1 or fraud_score >= 0.55)
+    fraud_score = max(0.0, min(1.0, FRAUD_SCORE_THRESHOLD - raw_score))
+    fraud_flag = bool(prediction == -1 or fraud_score >= FRAUD_SCORE_THRESHOLD)
 
     reasons = []
     if req.gps_distance_km > 100:

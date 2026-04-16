@@ -18,6 +18,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiInferenceService {
 
+    private static final double DEFAULT_WEEKLY_PREMIUM = 79.0;
+
     @Value("${app.ai.base-url:http://localhost:8000}")
     private String aiBaseUrl;
 
@@ -38,7 +40,7 @@ public class AiInferenceService {
         Map<String, Object> response = post("/predict-risk", payload);
 
         double riskScore = clamp(toDouble(response.get("riskScore"), 50.0), 0.0, 100.0);
-        BigDecimal premium = BigDecimal.valueOf(toDouble(response.get("premium"), 79.0)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal premium = BigDecimal.valueOf(toDouble(response.get("premium"), DEFAULT_WEEKLY_PREMIUM)).setScale(2, RoundingMode.HALF_UP);
         String riskLevel = response.get("riskLevel") != null ? response.get("riskLevel").toString() : toRiskLevel(riskScore);
 
         return new RiskPrediction(riskScore, premium, riskLevel);

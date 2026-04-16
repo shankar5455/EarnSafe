@@ -14,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +25,9 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class WeatherService {
+
+    // OpenWeather air_pollution API returns AQI index 1..5; map to 100..500 for policy thresholds.
+    private static final int AQI_SCALE_MULTIPLIER = 100;
 
     @Value("${app.weather.api.key:}")
     private String weatherApiKey;
@@ -50,7 +55,8 @@ public class WeatherService {
                 .setReadTimeout(Duration.ofMillis(timeoutMs))
                 .build();
 
-        String url = weatherApiUrl + "/weather?q=" + city.trim() + ",IN&units=metric&appid=" + weatherApiKey;
+        String encodedCity = URLEncoder.encode(city.trim(), StandardCharsets.UTF_8);
+        String url = weatherApiUrl + "/weather?q=" + encodedCity + ",IN&units=metric&appid=" + weatherApiKey;
         ResponseEntity<Map> response = client.getForEntity(url, Map.class);
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("Failed to fetch weather for city " + city);
@@ -97,7 +103,7 @@ public class WeatherService {
             if (listObj instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Map<?, ?> map) {
                 Object mainObj = map.get("main");
                 if (mainObj instanceof Map<?, ?> main && main.get("aqi") instanceof Number aqiScale) {
-                    return Math.max(0, Math.min(500, aqiScale.intValue() * 100));
+                    return Math.max(0, Math.min(500, aqiScale.intValue() * AQI_SCALE_MULTIPLIER));
                 }
             }
         } catch (Exception ex) {
