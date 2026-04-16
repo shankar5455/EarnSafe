@@ -245,6 +245,13 @@ AI service runs on: `http://localhost:8000`
 - Instant payout → **YES**
 
 ---
+## 🎥 Demo Video
+https://drive.google.com/file/d/1jFM_Suh-OwAbKWzlT32CKfI0-ar5vTRR/view?usp=sharing
+
+## 📊 Pitch Deck
+https://drive.google.com/file/d/1qe0_B0trKVCPQUNMyE1Cx1mj1MnUohrF/view?usp=sharing
+
+---
 
 ## 🏁 Conclusion
 EarnSafe delivers a startup-grade, AI-powered, fully automated income-protection platform for gig workers—combining parametric triggers, fraud-aware decisioning, and resilient payout reliability into one production-ready system.
