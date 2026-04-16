@@ -1,3 +1,7 @@
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![AI](https://img.shields.io/badge/AI-powered-blue)
+![DEVTrails](https://img.shields.io/badge/DEVTrails-Phase%203-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
 # 🚀 EarnSafe — AI-Powered Income Protection for Gig Workers
 
 ## 📌 Problem Statement
