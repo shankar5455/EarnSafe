@@ -27,6 +27,7 @@ public class ClaimService {
     private final PolicyRepository policyRepository;
     private final FraudService fraudService;
     private final PayoutService payoutService;
+    private final AiInferenceService aiInferenceService;
 
     public List<ClaimResponse> getMyClaims(User user) {
         return claimRepository.findByUserOrderByCreatedAtDesc(user)
@@ -72,7 +73,7 @@ public class ClaimService {
                 ? user.getAverageDailyEarnings()
                 : new BigDecimal("500");
 
-        BigDecimal lostHoursFactor = getImpactFactor(event);
+        BigDecimal lostHoursFactor = getImpactFactor(user, event);
         BigDecimal estimatedLostHours = avgWorkHours.multiply(lostHoursFactor).setScale(2, RoundingMode.HALF_UP);
         BigDecimal estimatedLostIncome = avgDailyEarnings.multiply(lostHoursFactor).setScale(2, RoundingMode.HALF_UP);
 
@@ -136,15 +137,8 @@ public class ClaimService {
         return mapToResponse(paid);
     }
 
-    private BigDecimal getImpactFactor(WeatherEvent event) {
-        return switch (event.getEventType()) {
-            case "FLOOD_ALERT" -> new BigDecimal("0.9");
-            case "HEAVY_RAIN" -> new BigDecimal("0.7");
-            case "ZONE_CLOSURE" -> new BigDecimal("1.0");
-            case "HEATWAVE" -> new BigDecimal("0.5");
-            case "POLLUTION_SPIKE" -> new BigDecimal("0.4");
-            default -> new BigDecimal("0.6");
-        };
+    private BigDecimal getImpactFactor(User user, WeatherEvent event) {
+        return aiInferenceService.predictImpactFactor(user, event);
     }
 
     public ClaimResponse mapToResponse(Claim claim) {

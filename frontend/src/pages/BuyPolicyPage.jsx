@@ -152,6 +152,9 @@ export default function BuyPolicyPage() {
                 <p className="text-sm font-medium text-blue-700">
                   Risk Level: <span className={`font-bold ${premium.riskScore === 'HIGH' ? 'text-red-600' : premium.riskScore === 'LOW' ? 'text-green-600' : 'text-amber-600'}`}>{premium.riskScore}</span>
                 </p>
+                {premium.riskScoreNumeric !== undefined && premium.riskScoreNumeric !== null && (
+                  <p className="text-xs text-blue-600">AI Model Score: {(premium.riskScoreNumeric * 100).toFixed(0)}%</p>
+                )}
                 <p className="text-sm text-blue-600">{premium.explanation}</p>
                 {premium.basePremium && (
                   <div className="bg-white rounded-lg p-3 text-center">

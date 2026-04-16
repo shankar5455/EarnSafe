@@ -72,7 +72,7 @@ export default function PoliciesPage() {
                         <StatusBadge status={policy.riskScore} />
                         {policy.riskScoreNumeric !== undefined && policy.riskScoreNumeric !== null && (
                           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                            AI Risk: {(policy.riskScoreNumeric * 100).toFixed(0)}%
+                            Model Risk: {(policy.riskScoreNumeric * 100).toFixed(0)}%
                           </span>
                         )}
                       </div>

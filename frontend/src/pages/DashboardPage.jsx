@@ -159,7 +159,7 @@ export default function DashboardPage() {
           <DashboardCard
             title="Risk Level"
             value={premium?.riskScore || activePolicy?.riskScore || 'N/A'}
-            subtitle={premium?.riskScoreNumeric !== undefined ? `AI Score: ${(premium.riskScoreNumeric * 100).toFixed(0)}%` : 'Your zone risk'}
+            subtitle={premium?.riskScoreNumeric !== undefined ? `Model Score: ${(premium.riskScoreNumeric * 100).toFixed(0)}%` : 'AI model prediction'}
             icon={Zap}
             color={premium?.riskScore === 'HIGH' ? 'red' : premium?.riskScore === 'LOW' ? 'green' : 'orange'}
           />
