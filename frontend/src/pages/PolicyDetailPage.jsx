@@ -106,7 +106,7 @@ export default function PolicyDetailPage() {
                 <div className="flex items-center gap-2">
                   <StatusBadge status={policy.riskScore} />
                   {policy.riskScoreNumeric !== undefined && policy.riskScoreNumeric !== null && (
-                    <span className="text-xs text-gray-500">({(policy.riskScoreNumeric * 100).toFixed(0)}%)</span>
+                    <span className="text-xs text-gray-500">(Model {(policy.riskScoreNumeric * 100).toFixed(0)}%)</span>
                   )}
                 </div>
               </div>

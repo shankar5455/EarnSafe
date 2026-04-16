@@ -37,7 +37,6 @@ public class TriggerMonitoringService {
 
         // fetch active policies WITH user eagerly loaded
         List<Policy> activePolicies = policyRepository.findActivePoliciesWithUser();
-
         if (activePolicies.isEmpty()) {
             log.info("[AutoTrigger] No active policies found. Skipping scan.");
             return;
@@ -104,9 +103,9 @@ public class TriggerMonitoringService {
     private List<ClaimResponse> evaluateZoneConditions(String zone, String city) {
         log.info("[AutoTrigger] Checking triggers for zone: {} (city: {})", zone, city);
 
-        // Replace later with real weather API
+        // Simulate realistic disruption conditions that breach parametric thresholds.
+        // In a production setup this data would come from a live weather/AQI API.
         WeatherEvent event = buildSimulatedEvent(zone, city);
-
         weatherEventRepository.save(event);
 
         List<ClaimResponse> claims = triggerService.evaluatePoliciesForEvent(event);
@@ -121,7 +120,10 @@ public class TriggerMonitoringService {
     }
 
     /**
-     * Simulate weather events (rotating conditions)
+     * Builds a simulated weather event that meets parametric trigger thresholds.
+     * Rotates through HEAVY_RAIN → HEATWAVE → POLLUTION_SPIKE → FLOOD_ALERT → ZONE_CLOSURE
+     * based on the current minute, so different conditions are exercised over time.
+     * city is set to the actual user/policy city; zone is the coverage zone used for grouping.
      */
     private WeatherEvent buildSimulatedEvent(String zone, String city) {
         int minute = LocalDateTime.now().getMinute();
